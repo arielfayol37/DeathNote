@@ -1,13 +1,28 @@
 import React, { useState, useEffect } from 'react'; 
 import { View, TextInput, Button, Text, FlatList, StyleSheet, Alert, SafeAreaView, 
-ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
-import {formatTimestamp } from './utils';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ScrollView } from 'react-native-gesture-handler';
+
+import { uploadImage } from './imageUpload';
+import {formatTimestamp } from './utils';
+
+
 
 export default function App() {
   const [note, setNote] = useState('');
+
+  const [imageUri, setImageUri] = useState(null);
+
+  const handleImageUpload = async () => {
+    const uri = await uploadImage();
+    if (uri) {
+      setImageUri(uri);
+      // console.log('Image uploaded:', uri);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}> 
@@ -19,22 +34,37 @@ export default function App() {
           <View style={styles.noteBox}>
             <ScrollView style={{flex: 1}}>
               <Text style={styles.text}>{note}</Text>
+              {imageUri && (
+              <Image source={{ uri: imageUri }} style={styles.image} />
+              )}
             </ScrollView>
           </View>
+
+          <TouchableOpacity onPress={() => {}}>
+              <FontAwesome name="save" size={24} color="black" />
+          </TouchableOpacity>
           
           
           
           <View style={styles.interactionArea}>
+            <TouchableOpacity onPress={handleImageUpload}>
+                <AntDesign name="pluscircleo" size={24} color="black" />
+            </TouchableOpacity>
             
-            <AntDesign name="pluscircleo" size={24} color="black" />
             <TextInput
               style={styles.input}
               autoCorrect={false}
               placeholder="Write your note here"
               value={note}
               onChangeText={setNote}
+              multiline={true}
+              autoFocus={true}
               /> 
-            <SimpleLineIcons name="microphone" size={24} color="black" />
+            
+            <TouchableOpacity onPress={() => {}}>
+                <SimpleLineIcons name="microphone" size={24} color="black" />
+            </TouchableOpacity>
+            
           
           </View>
       </KeyboardAvoidingView>
@@ -71,6 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, // Padding inside the input
     fontSize: 16, // Larger font size
     backgroundColor: '#fff', // White background for the input
+    borderRadius: 10, // Rounded corners
   },
   text: {
     fontSize: 16,
@@ -82,7 +113,7 @@ const styles = StyleSheet.create({
   },
   noteBox: {
     width: '95%',
-    height: '86%',
+    height: '80%',
 
     backgroundColor: '#fff', // Background color of the box
     borderRadius: 10, // Rounded corners
@@ -99,4 +130,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'Cambria, Cochin, Georgia, Times, Times New Roman, serif',
   },
+  image:{
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+  }
 });
