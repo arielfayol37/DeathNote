@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect, useRef } from 'react'; 
 import { View, TextInput, Button, Text, FlatList, StyleSheet, Alert, SafeAreaView, 
-ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
+ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, Image, ScrollView} from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { ScrollView } from 'react-native-gesture-handler';
 
 import { uploadImage } from './imageUpload';
 import {formatTimestamp } from './utils';
@@ -12,31 +11,76 @@ import {formatTimestamp } from './utils';
 
 
 export default function App() {
-  const [note, setNote] = useState('');
-
-  const [imageUri, setImageUri] = useState(null);
+  const [items, setItems] = useState([]);
+  const [currentText, setCurrentText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollViewRef = useRef(null);
 
   const handleImageUpload = async () => {
     const uri = await uploadImage();
     if (uri) {
-      setImageUri(uri);
+      const newItems = [...items];
+      newItems.push({ 'type': 'image', 'uri': uri }, { 'type': 'text', 'text': '' });
+      setCurrentText(''); // Clear the text input
+      setCurrentIndex(items.length + 1);
+      setItems(newItems);
+
+      setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ 
+        y:200, 
+        animated: true });
+    }, 100);
       // console.log('Image uploaded:', uri);
     }
   };
+  
+  const changeItemText = (index, text) => {
+    const newItems = [...items];
+    newItems[index] = { 'type': 'text', 'text':text };
+    setItems(newItems);
+  }
+
+  const handleTextInput = (text) => {
+    setCurrentText(text);
+    changeItemText(currentIndex, text);
+  
+  }
+
+  const handleTextPress = (index) => {
+    setCurrentIndex(index);
+    setCurrentText(items[index].text);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}> 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}>
-        
        
           <View style={styles.noteBox}>
-            <ScrollView style={{flex: 1}}>
-              <Text style={styles.text}>{note}</Text>
-              {imageUri && (
-              <Image source={{ uri: imageUri }} style={styles.image} />
-              )}
+            <ScrollView ref={scrollViewRef}
+            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}>
+              <View style={{alignItems: 'center', width: '100%'}}>
+                  {items.map((item, index) => (
+                    item.type==='text'?
+                    <TouchableOpacity key={index} onPress={() => handleTextPress(index)}
+                      style={{width: '100%'}}> 
+                        <View style={styles.textContainer}>
+                          <Text style={styles.text}>
+                            {item.text}
+                          </Text>
+                        </View>
+                    </TouchableOpacity>: 
+                    item.type==='image'? 
+                    <TouchableOpacity key={index} onPress={() => {}}>
+                        <View style={styles.imageContainer}>
+                          <Image source={{uri: item.uri}} style={styles.image}/>
+                        </View>
+                        
+                    </TouchableOpacity>
+                    : null
+                  ))}
+              </View>
             </ScrollView>
           </View>
 
@@ -55,8 +99,8 @@ export default function App() {
               style={styles.input}
               autoCorrect={false}
               placeholder="Write your note here"
-              value={note}
-              onChangeText={setNote}
+              value={currentText}
+              onChangeText={handleTextInput}
               multiline={true}
               autoFocus={true}
               /> 
@@ -103,13 +147,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', // White background for the input
     borderRadius: 10, // Rounded corners
   },
+  textContainer:{
+    padding: 5,
+    margin: 2,
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderColor: '#D3D3D3',
+    width: '100%',
+  },
   text: {
     fontSize: 16,
+    fontFamily: 'serif',
     color: '#333', // Darker text color for better readability
-    fontFamily: 'Cambria, Cochin, Georgia, Times, Times New Roman, serif',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    
   },
   noteBox: {
     width: '95%',
@@ -125,14 +174,23 @@ const styles = StyleSheet.create({
     // Shadow for Android
     elevation: 5, // Elevation for Android shadow
   },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: 'Cambria, Cochin, Georgia, Times, Times New Roman, serif',
   },
-  image:{
+  imageContainer:{
     width: 300,
-    height: 300,
-    resizeMode: 'contain',
+    height: 400,
+    borderRadius: 10,
+    backgroundColor: 'grey',
+    margin: 5,
+  },
+  image:{
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover',
   }
 });
