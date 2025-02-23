@@ -4,7 +4,9 @@ ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, Image, Scro
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
+import { startRecording, stopRecording, playAudio } from './audioUtils';
 import { uploadImage } from './imageUpload';
 import {formatTimestamp } from './utils';
 
@@ -14,6 +16,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [currentText, setCurrentText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [recording, setRecording] = useState(null);
   const scrollViewRef = useRef(null);
 
   const handleImageUpload = async () => {
@@ -51,6 +54,16 @@ export default function App() {
     setCurrentText(items[index].text);
   }
 
+
+  // Handle recording button press
+  const handleRecordingPress = async () => {
+    if (recording) {
+      await stopRecording(recording, setRecording, setItems);
+    } else {
+      await startRecording(setRecording);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}> 
       <KeyboardAvoidingView
@@ -78,7 +91,10 @@ export default function App() {
                         </View>
                         
                     </TouchableOpacity>
-                    : null
+                    : item.type==='audio'?
+                    <TouchableOpacity key={index} onPress={() => playAudio(item.uri)}>
+                       <Ionicons name="caret-forward-circle-outline" size={24} color="black" />
+                    </TouchableOpacity>: null
                   ))}
               </View>
             </ScrollView>
@@ -105,8 +121,8 @@ export default function App() {
               autoFocus={true}
               /> 
             
-            <TouchableOpacity onPress={() => {}}>
-                <SimpleLineIcons name="microphone" size={24} color="black" />
+            <TouchableOpacity onPress={handleRecordingPress}>
+            <SimpleLineIcons name={recording ? "control-pause" : "microphone"} size={24} color="black" />
             </TouchableOpacity>
             
           
