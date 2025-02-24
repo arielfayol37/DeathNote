@@ -92,9 +92,12 @@ export default function App() {
                         
                     </TouchableOpacity>
                     : item.type==='audio'?
-                    <TouchableOpacity key={index} onPress={() => playAudio(item.uri)}>
-                       <Ionicons name="caret-forward-circle-outline" size={24} color="black" />
-                    </TouchableOpacity>: null
+                      <TouchableOpacity key={index} onPress={() => playAudio(item.uri)}>
+                        <View style={styles.audioContainer}>
+                          <Ionicons name="caret-forward-circle-outline" size={24} color="black" />
+                          <Text style={styles.audioDuration}>{item.duration}</Text>
+                        </View>
+                      </TouchableOpacity>: null
                   ))}
               </View>
             </ScrollView>
@@ -111,6 +114,7 @@ export default function App() {
                 <AntDesign name="pluscircleo" size={24} color="black" />
             </TouchableOpacity>
             
+            {recording ? <ActivityIndicator size="large" color="red" /> :
             <TextInput
               style={styles.input}
               autoCorrect={false}
@@ -119,10 +123,10 @@ export default function App() {
               onChangeText={handleTextInput}
               multiline={true}
               autoFocus={true}
-              /> 
+              /> }
             
             <TouchableOpacity onPress={handleRecordingPress}>
-            <SimpleLineIcons name={recording ? "control-pause" : "microphone"} size={24} color="black" />
+              {recording ? <SimpleLineIcons name="control-pause" size={24} color="red"/> : <SimpleLineIcons name="microphone" size={24} color="black"/>}
             </TouchableOpacity>
             
           
@@ -208,5 +212,15 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 10,
     resizeMode: 'cover',
-  }
+  },
+  audioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 5,
+  },
+  audioDuration: {
+    marginLeft: 8, // Space between icon and duration text
+    fontSize: 16,
+    color: '#333',
+  },
 });
