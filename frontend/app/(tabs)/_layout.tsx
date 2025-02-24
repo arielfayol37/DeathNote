@@ -9,7 +9,7 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 import App from './index/index';
-import TabTwoScreen from './explore/explore';
+import NotesStack from './components/NotesStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -21,7 +21,7 @@ export default function DrawerLayout() {
       <Drawer.Navigator
         initialRouteName="index"
         screenOptions={{
-          headerShown: false,
+          headerShown: true,
           drawerActiveTintColor: Colors[colorScheme ?? 'light'].tint,
           drawerStyle: Platform.select({
             ios: {
@@ -34,18 +34,18 @@ export default function DrawerLayout() {
           name="index"
           component={App}
           options={{
-            title: 'Home',
+            title: '',
             drawerIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
           }}
         />
-        <Drawer.Screen
-          name="explore"
-          component={TabTwoScreen}
-          options={{
-            title: 'Explore',
-            drawerIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-          }}
-        />
+      <Drawer.Screen
+        name="NotesStack"
+        component={NotesStack}
+        options={{
+          title: '',
+          drawerIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+        }}
+      />
       </Drawer.Navigator>
   );
 }

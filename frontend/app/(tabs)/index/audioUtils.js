@@ -61,21 +61,37 @@ export async function stopRecording(recording, setRecording, setItems) {
     }
   }
 // Play recorded audio
-export async function playAudio(uri) {
+export async function playAudio(uri, onPlaybackStatusUpdate, onFinish) {
     if (!uri) return;
   
     try {
       // Configure audio mode for playback
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false, // Disable recording mode on iOS
-        // playsInSilentModeIOS: true, // Allow playback even in silent mode
-        // staysActiveInBackground: false, // Optional: adjust based on your needs
-        // shouldDuckAndroid: false, // Optional: prevent lowering other audio on Android
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
       });
   
       const { sound } = await Audio.Sound.createAsync({ uri });
-      await sound.setVolumeAsync(1.0); // Set volume to maximum
+      await sound.setVolumeAsync(1.0); // Max volume
+      await sound.setProgressUpdateIntervalAsync(50);
+
+      // Set up real-time playback status updates
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isPlaying) {
+          onPlaybackStatusUpdate({
+            position: status.positionMillis,
+            duration: status.durationMillis,
+            volume: 1.0, // Static for now; Expo AV doesn’t give amplitude
+          });
+        }
+        if (status.didJustFinish) {
+          sound.unloadAsync(); // Clean up when finished
+          onFinish();
+        }
+      });
+  
       await sound.playAsync();
+      return sound; // Return sound object for potential manual control
     } catch (error) {
       console.error('Failed to play audio', error);
     }
