@@ -1,4 +1,5 @@
 import ollama
+import os, uuid
 
 def get_title(message):
     system_prompt = {"role":"system", "content":"The following is an entry from a diary. Generate a short title that captures the important and intriguing details for it. Your output should strictly be the title. No comments."}
@@ -26,3 +27,23 @@ def describe_image(image_path):
 def transcribe_audio(model, audio_path):
    transcription = model.transcribe(audio_path)
    return transcription["text"]
+
+def handle_uploaded_file(uploaded_file, upload_dir='temp_uploads'):
+    """
+    Saves an UploadedFile to a local directory (temp_uploads by default).
+    Returns the absolute path to the saved file.
+    """
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+
+    # Generate a random file name with the correct extension
+    extension = os.path.splitext(uploaded_file.name)[1]  # e.g. ".jpg", ".m4a"
+    filename = f"{uuid.uuid4()}{extension}"
+    filepath = os.path.join(upload_dir, filename)
+
+    # Write chunks from the UploadedFile into the new file
+    with open(filepath, 'wb+') as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+
+    return filepath

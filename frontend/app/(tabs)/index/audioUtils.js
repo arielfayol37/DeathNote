@@ -1,6 +1,5 @@
+// @app/(tabs)/index/audioUtils.js
 import { Audio } from 'expo-av';
-
-
 // Convert milliseconds to "minute:second" format
  function formatDuration(milliseconds) {
   const totalSeconds = Math.floor(milliseconds / 1000);

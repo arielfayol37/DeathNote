@@ -1,3 +1,4 @@
+// @app/(tabs)/index/imageUpload.jsx
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
 

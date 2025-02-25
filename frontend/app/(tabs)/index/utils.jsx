@@ -1,3 +1,4 @@
+// @app/(tabs)/index/utils.jsx
 import * as Notifications from 'expo-notifications';
 
 const formatTimestamp = (timestamp) => {

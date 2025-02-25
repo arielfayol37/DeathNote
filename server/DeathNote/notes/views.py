@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Note
 from .serializers import NoteSerializer
-from .utils import get_title, get_embedding  # Import your embedding function
+from .utils import get_title, get_embedding, handle_uploaded_file, describe_image, transcribe_audio
 import whisper 
+from rest_framework.views import APIView
+import json
 
 transcription_model = whisper.load_model(name="large", device="cuda")
 
@@ -74,3 +76,80 @@ def delete_note(request, note_id):
         return Response({'message': 'Note deleted'}, status=status.HTTP_204_NO_CONTENT)
     except Note.DoesNotExist:
         return Response({'error': 'Note not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class NoteUploadView(APIView):
+    """
+    Expects a multipart/form-data POST with:
+      - noteData (JSON string) containing:
+            {
+              "timestamp": "1677158025412",
+              "items": [
+                { "type": "text", "text": "Hello..." },
+                { "type": "image", "fieldName": "file_0" },
+                { "type": "audio", "fieldName": "file_1", "duration": 3.21 },
+                ...
+              ]
+            }
+      - file_0, file_1, ... (UploadedFiles) 
+    """
+
+    def post(self, request):
+        try:
+            # 1) Extract the noteData JSON from the form
+            note_data_str = request.data.get('noteData')
+            if not note_data_str:
+                return Response({"error": "Missing noteData field"}, status=status.HTTP_400_BAD_REQUEST)
+
+            note_data = json.loads(note_data_str)
+            items = note_data.get('items', [])
+            timestamp = note_data.get('timestamp', None)
+
+            # 2) Pre-process items into a list of results, preserving order
+            results = [None] * len(items)  # Placeholder for results in original order
+
+            # Process all text items first
+            for i, item in enumerate(items):
+                if item.get('type') == 'text':
+                    text = item.get('text', '')
+                    results[i] = text + "\n"
+
+            # Process all image items in one batch
+            image_indices = [i for i, item in enumerate(items) if item.get('type') == 'image']
+            for i in image_indices:
+                item = items[i]
+                field_name = item.get('fieldName')
+                if field_name not in request.FILES:
+                    results[i] = ""  # Handle missing file gracefully
+                    continue
+                uploaded_file = request.FILES[field_name]
+                saved_path = handle_uploaded_file(uploaded_file)
+                image_text = describe_image(saved_path)
+                results[i] = "image description: " + image_text + "\n"
+
+            # Process all audio items in one batch
+            audio_indices = [i for i, item in enumerate(items) if item.get('type') == 'audio']
+            for i in audio_indices:
+                item = items[i]
+                field_name = item.get('fieldName')
+                if field_name not in request.FILES:
+                    results[i] = ""  # Handle missing file gracefully
+                    continue
+                uploaded_file = request.FILES[field_name]
+                saved_path = handle_uploaded_file(uploaded_file)
+                audio_text = transcribe_audio(transcription_model, saved_path)
+                results[i] = "audio transcription: " + audio_text + "\n"
+
+            # Combine results in original order
+            raw_text = "".join(r if r is not None else "" for r in results)
+
+            # 3) Return a success response
+            return Response({
+                "summary": raw_text[:200],
+                "timestamp": timestamp,
+                "raw_text": raw_text,
+                "title": get_title(raw_text),
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
