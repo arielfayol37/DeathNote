@@ -5,6 +5,9 @@ from rest_framework import status
 from .models import Note
 from .serializers import NoteSerializer
 from .utils import get_title, get_embedding  # Import your embedding function
+import whisper 
+
+transcription_model = whisper.load_model(name="large", device="cuda")
 
 def cosine_similarity(vec1, vec2):
     """Compute the cosine similarity between two vectors"""

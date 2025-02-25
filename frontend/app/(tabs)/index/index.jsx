@@ -28,7 +28,7 @@ import { uploadImage } from './imageUpload';
 import { formatTimestamp, formatDuration } from './utils';
 
 export default function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([{ type: 'text', text: '' }]);
   const [currentText, setCurrentText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(null);
