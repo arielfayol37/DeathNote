@@ -14,5 +14,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
 , "app/(tabs)/components/*.jsx",
-"app/(tabs)/index/index.jsx",  ]
+"app/(tabs)/index/index.jsx", "app/(tabs)/RefreshContext.jsx",  ]
 }

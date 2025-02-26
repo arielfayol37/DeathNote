@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 import App from './index/index';
 import NotesStack from './components/NotesStack';
+import { RefreshProvider } from './RefreshContext';
 
 const Drawer = createDrawerNavigator();
 
@@ -18,34 +19,37 @@ export default function DrawerLayout() {
 
   return (
 
-      <Drawer.Navigator
-        initialRouteName="index"
-        screenOptions={{
-          headerShown: true,
-          drawerActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-          drawerStyle: Platform.select({
-            ios: {
-              position: 'absolute',
-            },
-            default: {},
-          }),
-        }}>
+    <RefreshProvider>
+        <Drawer.Navigator
+          initialRouteName="index"
+          screenOptions={{
+            headerShown: true,
+            drawerActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+            drawerStyle: Platform.select({
+              ios: {
+                position: 'absolute',
+              },
+              default: {},
+            }),
+          }}>
+          <Drawer.Screen
+            name="index"
+            component={App}
+            options={{
+              title: '',
+              drawerIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+            }}
+          />
         <Drawer.Screen
-          name="index"
-          component={App}
+          name="NotesStack"
+          component={NotesStack}
           options={{
             title: '',
-            drawerIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+            drawerIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
           }}
         />
-      <Drawer.Screen
-        name="NotesStack"
-        component={NotesStack}
-        options={{
-          title: '',
-          drawerIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
-        }}
-      />
-      </Drawer.Navigator>
+        </Drawer.Navigator>
+    </RefreshProvider>
+
   );
 }

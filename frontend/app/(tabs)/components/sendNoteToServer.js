@@ -104,3 +104,5 @@ export async function sendNoteWithFormData(folderName, serverUrl) {
     throw error;
   }
 }
+
+export default sendNoteWithFormData;

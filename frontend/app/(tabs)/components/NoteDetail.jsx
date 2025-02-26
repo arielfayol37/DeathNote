@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   Animated,
   SafeAreaView,
@@ -14,7 +15,11 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useHeaderHeight } from '@react-navigation/elements'
+import { useHeaderHeight } from '@react-navigation/elements';
+import { BlurView } from 'expo-blur';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 /** 
  * Reuse your existing playAudio or adapt it. 
  * Make sure to export it or define it here. 
@@ -25,6 +30,8 @@ import styles from '../index/styles';
 export default function NoteDetail({ route }) {
   const { folderName } = route.params; // e.g. "1677158025412"
   const [items, setItems] = useState([]);
+  const [aiInfo, setAiInfo] = useState(null);
+  const [activeTab, setActiveTab] = useState('original');
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
   const soundRef = useRef(null);
 
@@ -51,7 +58,7 @@ export default function NoteDetail({ route }) {
   // Load note from file system on mount
   useEffect(() => {
     loadNote();
-    // If you want to unload sound on unmount:
+    // Cleanup: unload sound on unmount
     return () => {
       if (soundRef.current) {
         soundRef.current.unloadAsync();
@@ -64,16 +71,25 @@ export default function NoteDetail({ route }) {
       const noteFolder = FileSystem.documentDirectory + `notes/${folderName}/`;
       // Read note.json
       const noteJson = await FileSystem.readAsStringAsync(noteFolder + 'note.json');
-      const parsed = JSON.parse(noteJson);
-      setItems(parsed);
+      const parsedItems = JSON.parse(noteJson);
+      setItems(parsedItems);
+
+      // Read ai_info.json
+      const aiInfoPath = FileSystem.documentDirectory + `notes/${folderName}/ai_info.json`;
+      const info = await FileSystem.getInfoAsync(aiInfoPath);
+      if (info.exists) {
+        const aiInfoString = await FileSystem.readAsStringAsync(aiInfoPath);
+        const parsedAiInfo = JSON.parse(aiInfoString);
+        setAiInfo(parsedAiInfo);
+      }
     } catch (error) {
       console.warn('Error loading note:', error);
     }
   };
 
   const handlePlayAudio = async (uri, index) => {
+    // If tapping the same audio => pause
     if (playingAudioIndex === index) {
-      // If tapping the same audio => pause
       if (soundRef.current) {
         await soundRef.current.pauseAsync();
       }
@@ -84,6 +100,7 @@ export default function NoteDetail({ route }) {
         duration: 300,
         useNativeDriver: false,
       }).start();
+
       Animated.timing(getLoudnessAnim(index), {
         toValue: 0,
         duration: 300,
@@ -93,7 +110,7 @@ export default function NoteDetail({ route }) {
       return;
     }
 
-    // If a different audio is playing, unload it
+    // If a different audio is playing, unload it first
     if (soundRef.current) {
       await soundRef.current.unloadAsync();
       soundRef.current = null;
@@ -103,6 +120,7 @@ export default function NoteDetail({ route }) {
 
     const newSound = await playAudio(
       uri,
+      // onPlaybackStatusUpdate:
       (status) => {
         const progressPercent = status.duration
           ? status.position / status.duration
@@ -113,6 +131,7 @@ export default function NoteDetail({ route }) {
           useNativeDriver: false,
         }).start();
 
+        // Simulate loudness (replace with actual data if you have it)
         const simulatedLoudness = Math.abs(Math.sin(Date.now() / 100)) * 50 + 25;
         Animated.timing(getLoudnessAnim(index), {
           toValue: simulatedLoudness,
@@ -120,8 +139,8 @@ export default function NoteDetail({ route }) {
           useNativeDriver: false,
         }).start();
       },
+      // onFinish:
       () => {
-        // onFinish
         setPlayingAudioIndex(null);
         soundRef.current = null;
         Animated.timing(getProgressAnim(index), {
@@ -147,10 +166,14 @@ export default function NoteDetail({ route }) {
         style={styles.container}
         keyboardVerticalOffset={useHeaderHeight()}
       >
-      <View style={styles.noteBox}>
+        <View style={[styles.noteBox, { height: '90%' }]}>
           <ScrollView>
+            {/* Spacing at the top */}
+            <View style={{ height: 50 }} />
+
             <View style={{ alignItems: 'center', width: '100%' }}>
-              {items.map((item, index) => {
+              {/* Show the original items if activeTab is 'original' */}
+              {activeTab === 'original' && items.map((item, index) => {
                 if (item.type === 'text') {
                   return (
                     <View key={index} style={styles.textContainer}>
@@ -190,7 +213,6 @@ export default function NoteDetail({ route }) {
                         />
                       </TouchableOpacity>
 
-                      {/* If you have a duration property, show it */}
                       {item.duration ? (
                         <Text style={styles.audioDuration}>{item.duration}</Text>
                       ) : null}
@@ -211,10 +233,101 @@ export default function NoteDetail({ route }) {
                 }
                 return null;
               })}
-            </View>
-          </ScrollView>
-      </View>
 
+              {/* Show raw text if activeTab is 'raw_text' */}
+              {activeTab === 'raw_text' && aiInfo?.raw_text && (
+                <View style={{ padding: 20 }}>
+                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>Text Only</Text>
+                  <Text selectable>{aiInfo.raw_text}</Text>
+                </View>
+              )}
+
+              {/* Show summary if activeTab is 'summary' */}
+              {activeTab === 'summary' && aiInfo?.summary && (
+                <View style={{ padding: 20 }}>
+                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>AI Summary</Text>
+                  <Text>{aiInfo.summary}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Spacing at the bottom */}
+            <View style={{ height: 50 }} />
+          </ScrollView>
+
+          {/* Top Blur Overlay */}
+          <BlurView
+            intensity={5}
+            tint="light"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 50,
+            }}
+            pointerEvents="none"
+          />
+
+          {/* Bottom Blur Overlay */}
+          <BlurView
+            intensity={5}
+            tint="light"
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 50,
+            }}
+            pointerEvents="none"
+          />
+        </View>
+
+        <View style={[styles.interactionArea, { justifyContent: 'space-around' }]}>
+          {/* If aiInfo.raw_text exists, show button to switch to 'raw_text' */}
+          {aiInfo?.raw_text && (
+            <TouchableOpacity
+              onPress={() => setActiveTab('raw_text')}
+              style={{}}
+              hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }
+            >
+              <FontAwesome5
+                name="dice-d20"
+                size={30}
+                color={activeTab === 'raw_text' ? '#007AFF' : 'black'}
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* Default tab: show original inputs */}
+          <TouchableOpacity
+            onPress={() => setActiveTab('original')}
+            style={{}}
+            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }
+          >
+            <FontAwesome
+              name="user"
+              size={30}
+              color={activeTab === 'original' ? '#007AFF' : 'black'}
+            />
+          </TouchableOpacity>
+
+          {/* If aiInfo.summary exists, show button to switch to 'summary' */}
+          {aiInfo?.summary && (
+            <TouchableOpacity
+              onPress={() => setActiveTab('summary')}
+              style={{}}
+              hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }
+            >
+              <AntDesign
+                name="dingding"
+                size={30}
+                color={activeTab === 'summary' ? '#007AFF' : 'black'}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

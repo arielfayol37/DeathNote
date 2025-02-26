@@ -95,3 +95,5 @@ export async function playAudio(uri, onPlaybackStatusUpdate, onFinish) {
       console.error('Failed to play audio', error);
     }
   }
+
+  export default playAudio;

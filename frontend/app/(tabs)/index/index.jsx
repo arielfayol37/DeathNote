@@ -1,5 +1,5 @@
 // @app/(tabs)/index/index.jsx
-import React, { useState, useEffect, useRef } from 'react'; 
+import React, { useState, useEffect, useRef, useContext } from 'react'; 
 import { 
   View, 
   TextInput, 
@@ -10,7 +10,6 @@ import {
   Image, 
   TouchableOpacity, 
   SafeAreaView, 
-  ActivityIndicator,
   Animated,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements'
@@ -20,10 +19,13 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { BlurView } from 'expo-blur';
 
 import { startRecording, stopRecording, playAudio } from './audioUtils';
 import { uploadImage } from './imageUpload';
 import styles from './styles';
+import CustomLoader from '../components/customLoader';
+import { RefreshContext } from '../RefreshContext';
 
 export default function App() {
   const [items, setItems] = useState([{ type: 'text', text: '' }]);
@@ -31,6 +33,7 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(null);
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
+  const { setShouldRefreshNotes } = useContext(RefreshContext);
 
   // Keep track of the currently playing sound object
   const soundRef = useRef(null);
@@ -232,7 +235,7 @@ export default function App() {
       setItems([]);
       setCurrentIndex(0);
       setCurrentText('');
-
+      setShouldRefreshNotes(true);
 
     } catch (error) {
       console.warn('Error saving note:', error);
@@ -251,10 +254,12 @@ export default function App() {
           <ScrollView
             ref={scrollViewRef}
             onContentSizeChange={() =>
-              scrollViewRef.current?.scrollToEnd({ animated: true })
+              currentIndex === items.legnth-1 ? scrollViewRef.current?.scrollToEnd({ animated: true }): null
             }
           >
-            <View style={{ alignItems: 'center', width: '100%' }}>
+            <View style={{height: 50}}>
+            </View> 
+            <View style={{ alignItems: 'center', width: '100%'}}>
               {items.map((item, index) => {
                 if (item.type === 'text') {
                   return (
@@ -326,25 +331,61 @@ export default function App() {
               })}
 
               {/* Button to add new blank text item */}
-              <TouchableOpacity onPress={addNewText} style={{ margin: 8 }}>
+              <TouchableOpacity onPress={addNewText} style={{ margin: 8 }} hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
                 <AntDesign name="pluscircleo" size={24} color="black" />
               </TouchableOpacity>
             </View>
+
+              <View style={{height: 75}}>
+              </View>
+          
           </ScrollView>
+
+
+          <BlurView
+                intensity={5}
+                tint="light"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 50,
+                }}
+                pointerEvents="none"
+              />
+
+              {/* Bottom Blur Overlay */}
+              <BlurView
+                intensity={5}
+                tint="light"
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 50,
+                }}
+                pointerEvents="none"
+              />
         </View>
 
         {/* Example "save" button with a pen icon */}
-        <TouchableOpacity onPress={handleSaveNote}>
+        <TouchableOpacity 
+            onPress={handleSaveNote}
+            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
             <MaterialCommunityIcons name="draw-pen" size={24} color="black" />
         </TouchableOpacity>
 
         <View style={styles.interactionArea}>
-          <TouchableOpacity onPress={handleImageUpload}>
+          <TouchableOpacity 
+            onPress={handleImageUpload}
+            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
             <AntDesign name="camerao" size={24} color="black" />
           </TouchableOpacity>
 
           {recording ? (
-            <ActivityIndicator size="large" color="#007AFF"/>
+            <CustomLoader size={60} />
           ) : (
             <TextInput
               style={styles.input}
@@ -353,13 +394,15 @@ export default function App() {
               value={currentText}
               onChangeText={handleTextInput}
               multiline={true}
-              autoFocus={true}
             />
           )}
 
-          <TouchableOpacity onPress={handleRecordingPress}>
+          <TouchableOpacity 
+            onPress={handleRecordingPress}
+            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
+            
             {recording ? (
-              <SimpleLineIcons name="control-pause" size={24} color="#007AFF" />
+              <SimpleLineIcons name="control-pause" size={24} color="red" />
             ) : (
               <SimpleLineIcons name="microphone" size={24} color="black" />
             )}
