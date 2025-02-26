@@ -11,5 +11,3 @@ export const RefreshProvider = ({ children }) => {
     </RefreshContext.Provider>
   );
 };
-
-export default RefreshProvider;

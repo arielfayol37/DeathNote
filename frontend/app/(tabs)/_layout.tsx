@@ -16,7 +16,7 @@ const Drawer = createDrawerNavigator();
 
 export default function DrawerLayout() {
   const colorScheme = useColorScheme();
-
+  console.log('Color Scheme:', colorScheme);
   return (
 
     <RefreshProvider>
