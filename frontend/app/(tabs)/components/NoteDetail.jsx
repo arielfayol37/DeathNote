@@ -33,6 +33,8 @@ export default function NoteDetail({ route }) {
   const [aiInfo, setAiInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('original');
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
+  const [userName, setUserName] = useState('');
+
   const soundRef = useRef(null);
 
   // Animated refs for each item
@@ -65,6 +67,7 @@ export default function NoteDetail({ route }) {
       }
     };
   }, []);
+
 
   const loadNote = async () => {
     try {
@@ -257,7 +260,7 @@ export default function NoteDetail({ route }) {
 
           {/* Top Blur Overlay */}
           <BlurView
-            intensity={5}
+            intensity={8}
             tint="light"
             style={{
               position: 'absolute',
@@ -271,7 +274,7 @@ export default function NoteDetail({ route }) {
 
           {/* Bottom Blur Overlay */}
           <BlurView
-            intensity={5}
+            intensity={8}
             tint="light"
             style={{
               position: 'absolute',

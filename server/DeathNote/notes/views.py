@@ -8,8 +8,15 @@ from .utils import get_title, get_embedding, handle_uploaded_file, describe_imag
 import whisper 
 from rest_framework.views import APIView
 import json
-
+from django.http import FileResponse
+import os
 transcription_model = whisper.load_model(name="large", device="cuda")
+
+def download_apk(request):
+    """Download the DeathNote APK file"""
+    print(os.getcwd())
+    apk_path = os.path.join('static', 'apks', 'deathnote.apk')
+    return FileResponse(open(apk_path, 'rb'), as_attachment=True, content_type='application/vnd.android.package-archive')
 
 def cosine_similarity(vec1, vec2):
     """Compute the cosine similarity between two vectors"""
@@ -94,7 +101,7 @@ class NoteUploadView(APIView):
       - file_0, file_1, ... (UploadedFiles) 
     """
 
-    def post(self, request):
+    def post(self, request, username):
 
         # 1) Extract the noteData JSON from the form
         note_data_str = request.data.get('noteData')
@@ -142,7 +149,7 @@ class NoteUploadView(APIView):
 
         # Combine results in original order
         raw_text = "".join(r if r is not None else "" for r in results)
-        title, summary = parse_entry(raw_text)
+        title, summary = parse_entry(text=raw_text, name=username)
         # 3) Return a success response
         return Response({
             "summary": summary,

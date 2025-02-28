@@ -1,10 +1,10 @@
 import ollama
 import os, uuid
 
-def parse_entry(text):
+def parse_entry(text, name="Fayol"):
     system_prompt = {"role":"system",
-                     "content":"""I write notes about anything and everything, including my own thoughts (in fact mostly). I can upload images to my notes and record voice notes. The images and audio parts of the note have been parsed into text for you. They are embedded within tags. <image description start> and <image description end> for images. <audio transcription start> and <audio transcription end> for voice recordings. Now I want two things from you. You will serve as a tool for my notes app by providing a title for the note and a summary. Read the and provide a descriptive title encompassing the entire content and striking details, and a detailed summary. You should enclose title within title tags and the summary within summary tags. Just like html tags. e.g. <title> Some title </title> an
-... d <summary> some text summary </summary>. Your summary should be written like you are talking to a third-party about my note, but the title is for my notes app, so you don't need to include my name it. My name is Fayol. Here is the note:"""}
+                     "content":f"""I write notes about anything and everything, including my own thoughts (in fact mostly). I can upload images to my notes and record voice notes. The images and audio parts of the note have been parsed into text for you. They are embedded within tags. <image description start> and <image description end> for images. <audio transcription start> and <audio transcription end> for voice recordings. Now I want two things from you. You will serve as a tool for my notes app by providing a title for the note and a summary. Read the and provide a descriptive title encompassing the entire content and striking details, and a detailed summary. You should enclose title within title tags and the summary within summary tags. Just like html tags. e.g. <title> Some title </title> an
+... d <summary> some text summary </summary>. Your summary should be written like you are talking to a third-party about my note, but the title is for my notes app, so you don't need to include my name it. My name is {name}. Here is the note:"""}
     messages = [system_prompt] + [{"role": "user", "content": '""""' + text + '""""'}]
     # response = ollama.chat(model="llama3", messages=messages)
     # response = ollama.chat(model="dolphin-llama3:8b-256k", messages=messages)

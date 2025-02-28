@@ -8,6 +8,7 @@ import { sendNoteWithFormData } from './sendNoteToServer';
 import { RefreshContext } from '../RefreshContext';
 import CustomLoader from './customLoader';
 
+const STORAGE_KEY = 'user_name.txt';
 const LOADING_GIF = require('../../../assets/images/earth_rotate.gif');
 
 const formatTimestamp = (timestamp) => {
@@ -24,21 +25,15 @@ const formatTimestamp = (timestamp) => {
   }).format(date);
 };
 
-// EXAMPLE: a function that fetches AI info from your server
-async function fetchAiInfoFromServer(folderName) {
-  // Adjust the URL to match your backend endpoint
-  const endpoint = 'https://arielfayol.com/api/notes/summarize/';
-  return sendNoteWithFormData(folderName, endpoint);
-}
-
 export default function NotesList({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [userName, setUserName] = useState('Author');
   const { shouldRefreshNotes, setShouldRefreshNotes } = useContext(RefreshContext);
 
   useEffect(() => {
     // Load notes once on mount
+    loadUserName();
     loadNotesFolders();
   }, []);
 
@@ -46,6 +41,7 @@ export default function NotesList({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       if (shouldRefreshNotes) {
+        loadUserName();
         loadNotesFolders();
         // reset the global state so it doesn't keep triggering
         setShouldRefreshNotes(false);
@@ -53,6 +49,27 @@ export default function NotesList({ navigation }) {
     }, [shouldRefreshNotes])
   );
 
+
+  
+   // Function to load the saved name
+  const loadUserName = async () => {
+    try {
+      // Check if the file exists
+      const fileInfo = await FileSystem.getInfoAsync(FileSystem.documentDirectory + STORAGE_KEY);
+  
+      // If the file exists and contains content, set the name
+      if (fileInfo.exists) {
+        const savedName = await FileSystem.readAsStringAsync(FileSystem.documentDirectory + STORAGE_KEY);
+        setUserName(savedName.trim()); // Update state with the saved name
+      } else {
+        // File doesn't exist, no name saved
+        setUserName("Author"); // Or set to an empty string, if preferred
+      }
+    } catch (error) {
+      console.warn('Error loading user name:', error);
+    }
+  };
+  
   /**
    * Load local notes first, then do background fetches for any missing AI info.
    */
@@ -120,7 +137,8 @@ export default function NotesList({ navigation }) {
    */
   const fetchAiInfoInBackground = async (folderName) => {
     try {
-      const aiData = await fetchAiInfoFromServer(folderName);
+      const endpoint = 'https://arielfayol.com/api/notes/summarize/' + userName;
+      const aiData = await sendNoteWithFormData(folderName, endpoint);
       const folderPath = FileSystem.documentDirectory + 'notes/' + folderName + '/';
       const aiInfoPath = folderPath + 'ai_info.json';
 

@@ -27,6 +27,8 @@ import styles from './styles';
 import CustomLoader from '../components/customLoader';
 import { RefreshContext } from '../RefreshContext';
 
+const STORAGE_KEY = 'user_name.txt'; // File name to store the user's name
+
 export default function App() {
   const [items, setItems] = useState([{ type: 'text', text: '' }]);
   const [currentText, setCurrentText] = useState('');
@@ -35,6 +37,8 @@ export default function App() {
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
   const { setShouldRefreshNotes } = useContext(RefreshContext);
 
+  const [userName, setUserName] = useState(null); // State to hold the user's name
+  const [errorMessage, setErrorMessage] = useState(''); // State for validation message
   // Keep track of the currently playing sound object
   const soundRef = useRef(null);
 
@@ -43,6 +47,43 @@ export default function App() {
   const loudnessAnims = useRef({});
 
   const scrollViewRef = useRef(null);
+
+  useEffect(() => {
+    // Check if user name is stored, otherwise prompt for it
+    checkUserName();
+  }, []);
+
+  const checkUserName = async () => {
+    try {
+      const userInfo = await FileSystem.readAsStringAsync(
+        FileSystem.documentDirectory + STORAGE_KEY
+      );
+      setUserName(userInfo);
+    } catch (error) {
+      // File doesn't exist or failed to read
+      setUserName(null);
+    }
+  };
+
+
+  const saveUserName = async () => {
+    if (!currentText.trim()) {
+      setErrorMessage('Please enter a valid name.');
+      return;
+    }
+  
+    try {
+      await FileSystem.writeAsStringAsync(
+        FileSystem.documentDirectory + STORAGE_KEY,
+        currentText.trim()
+      );
+      setUserName(currentText.trim());
+      setCurrentText('');
+      setErrorMessage('');
+    } catch (error) {
+      console.warn('Error saving user name:', error);
+    }
+  };
 
   const getProgressAnim = (index) => {
     if (!progressAnims.current[index]) {
@@ -75,7 +116,7 @@ export default function App() {
     const newItems = [...items];
     newItems.push({ type: 'text', text: '' });
     setCurrentText('');
-    setCurrentIndex(items.length + 1);
+    setCurrentIndex(items.length);
     setItems(newItems);
   };
   
@@ -243,6 +284,31 @@ export default function App() {
     }
   };
 
+// Updated UI for input with validation
+const renderUserNameInput = () => {
+  return (
+    <View style={styles.userNameInputContainer}>
+      <View style={styles.userNameInputBox}>
+        <Text style={styles.userNameLabel}>What can I call you?</Text>
+        <TextInput
+          placeholder="Enter username"
+          style={styles.userNameInput}
+          value={currentText}
+          onChangeText={(text) => {
+            setCurrentText(text);
+            if (errorMessage) setErrorMessage(''); // Clear error when user starts typing
+          }}
+        />
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        <TouchableOpacity onPress={saveUserName} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -250,164 +316,169 @@ export default function App() {
         style={styles.container}
         keyboardVerticalOffset={useHeaderHeight()}
       >
-        <View style={styles.noteBox}>
-          <ScrollView
-            ref={scrollViewRef}
-            onContentSizeChange={() =>
-              currentIndex === items.legnth-1 ? scrollViewRef.current?.scrollToEnd({ animated: true }): null
-            }
-          >
-            <View style={{height: 50}}>
-            </View> 
-            <View style={{ alignItems: 'center', width: '100%'}}>
-              {items.map((item, index) => {
-                if (item.type === 'text') {
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleTextPress(index)}
-                      style={{ width: '100%' }}
-                    >
-                      <View style={styles.textContainer}>
-                        <Text style={styles.text}>{item.text}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                } else if (item.type === 'image') {
-                  return (
-                    <TouchableOpacity key={index} onPress={() => {}}>
-                      <View style={styles.imageContainer}>
-                        <Image source={{ uri: item.uri }} style={styles.image} />
-                      </View>
-                    </TouchableOpacity>
-                  );
-                } else if (item.type === 'audio') {
-                  const progressValue = getProgressAnim(index);
-                  const loudnessValue = getLoudnessAnim(index);
-
-                  const progressBarWidth = progressValue.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0%', '100%'],
-                  });
-                  const loudnessBarHeight = loudnessValue.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ['0%', '100%'],
-                  });
-
-                  return (
-                    <View key={index} style={styles.audioItem}>
+        {userName ? (
+          <View style={styles.noteBox}>
+            <ScrollView
+              ref={scrollViewRef}
+              onContentSizeChange={() =>
+                currentIndex === items.length - 1 ? scrollViewRef.current?.scrollToEnd({ animated: true }) : null
+              }
+            >
+              <View style={{ height: 50 }} />
+              <View style={{ alignItems: 'center', width: '100%' }}>
+                {items.map((item, index) => {
+                  if (item.type === 'text') {
+                    return (
                       <TouchableOpacity
-                        onPress={() => handlePlayAudio(item.uri, index)}
+                        key={index}
+                        onPress={() => handleTextPress(index)}
+                        style={{ width: '100%' }}
                       >
-                        <Ionicons
-                          name={
-                            playingAudioIndex === index
-                              ? 'pause-circle-outline'
-                              : 'caret-forward-circle-outline'
-                          }
-                          size={37}
-                          color="black"
-                        />
+                        <View style={styles.textContainer}>
+                          <Text style={styles.text}>{item.text}</Text>
+                        </View>
                       </TouchableOpacity>
-                      <Text style={styles.audioDuration}>{item.duration}</Text>
+                    );
+                  } else if (item.type === 'image') {
+                    return (
+                      <TouchableOpacity key={index} onPress={() => {}}>
+                        <View style={styles.imageContainer}>
+                          <Image source={{ uri: item.uri }} style={styles.image} />
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  } else if (item.type === 'audio') {
+                    const progressValue = getProgressAnim(index);
+                    const loudnessValue = getLoudnessAnim(index);
 
-                      {/* Progress Bar */}
-                      <View style={styles.progressBarContainer}>
-                        <Animated.View
-                          style={[styles.progressBar, { width: progressBarWidth }]}
-                        />
+                    const progressBarWidth = progressValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    });
+                    const loudnessBarHeight = loudnessValue.interpolate({
+                      inputRange: [0, 100],
+                      outputRange: ['0%', '100%'],
+                    });
+
+                    return (
+                      <View key={index} style={styles.audioItem}>
+                        <TouchableOpacity
+                          onPress={() => handlePlayAudio(item.uri, index)}
+                        >
+                          <Ionicons
+                            name={
+                              playingAudioIndex === index
+                                ? 'pause-circle-outline'
+                                : 'caret-forward-circle-outline'
+                            }
+                            size={37}
+                            color="black"
+                          />
+                        </TouchableOpacity>
+                        <Text style={styles.audioDuration}>{item.duration}</Text>
+
+                        {/* Progress Bar */}
+                        <View style={styles.progressBarContainer}>
+                          <Animated.View
+                            style={[styles.progressBar, { width: progressBarWidth }]}
+                          />
+                        </View>
+
+                        {/* Loudness Indicator */}
+                        <View style={styles.loudnessIndicator}>
+                          <Animated.View
+                            style={[styles.loudnessBar, { height: loudnessBarHeight }]}
+                          />
+                        </View>
                       </View>
+                    );
+                  }
+                  return null;
+                })}
 
-                      {/* Loudness Indicator */}
-                      <View style={styles.loudnessIndicator}>
-                        <Animated.View
-                          style={[styles.loudnessBar, { height: loudnessBarHeight }]}
-                        />
-                      </View>
-                    </View>
-                  );
-                }
-                return null;
-              })}
+                {/* Button to add new blank text item */}
+                <TouchableOpacity onPress={addNewText} style={{ margin: 8 }} hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}>
+                  <AntDesign name="pluscircleo" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
 
-              {/* Button to add new blank text item */}
-              <TouchableOpacity onPress={addNewText} style={{ margin: 8 }} hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
-                <AntDesign name="pluscircleo" size={24} color="black" />
+              <View style={{ height: 75 }} />
+            </ScrollView>
+
+            <BlurView
+              intensity={5}
+              tint="light"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 50,
+              }}
+              pointerEvents="none"
+            />
+
+            {/* Bottom Blur Overlay */}
+            <BlurView
+              intensity={5}
+              tint="light"
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 50,
+              }}
+              pointerEvents="none"
+            />
+          </View>
+        ) : (
+          renderUserNameInput()
+        )}
+
+        {userName ? (
+          <>
+            <TouchableOpacity 
+              onPress={handleSaveNote}
+              hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
+            >
+              <MaterialCommunityIcons name="draw-pen" size={24} color="black" />
+            </TouchableOpacity>
+
+            <View style={styles.interactionArea}>
+              <TouchableOpacity 
+                onPress={handleImageUpload}
+                hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
+              >
+                <AntDesign name="camerao" size={24} color="black" />
+              </TouchableOpacity>
+
+              {recording ? (
+                <CustomLoader size={60} />
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  autoCorrect={false}
+                  placeholder="Write your note here"
+                  value={currentText}
+                  onChangeText={handleTextInput}
+                  multiline={true}
+                />
+              )}
+
+              <TouchableOpacity 
+                onPress={handleRecordingPress}
+                hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
+              >
+                {recording ? (
+                  <SimpleLineIcons name="control-pause" size={24} color="red" />
+                ) : (
+                  <SimpleLineIcons name="microphone" size={24} color="black" />
+                )}
               </TouchableOpacity>
             </View>
-
-              <View style={{height: 75}}>
-              </View>
-          
-          </ScrollView>
-
-
-          <BlurView
-                intensity={5}
-                tint="light"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 50,
-                }}
-                pointerEvents="none"
-              />
-
-              {/* Bottom Blur Overlay */}
-              <BlurView
-                intensity={5}
-                tint="light"
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 50,
-                }}
-                pointerEvents="none"
-              />
-        </View>
-
-        {/* Example "save" button with a pen icon */}
-        <TouchableOpacity 
-            onPress={handleSaveNote}
-            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
-            <MaterialCommunityIcons name="draw-pen" size={24} color="black" />
-        </TouchableOpacity>
-
-        <View style={styles.interactionArea}>
-          <TouchableOpacity 
-            onPress={handleImageUpload}
-            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
-            <AntDesign name="camerao" size={24} color="black" />
-          </TouchableOpacity>
-
-          {recording ? (
-            <CustomLoader size={60} />
-          ) : (
-            <TextInput
-              style={styles.input}
-              autoCorrect={false}
-              placeholder="Write your note here"
-              value={currentText}
-              onChangeText={handleTextInput}
-              multiline={true}
-            />
-          )}
-
-          <TouchableOpacity 
-            onPress={handleRecordingPress}
-            hitSlop={ { top: 15, right: 15, bottom: 15, left: 15 } }>
-            
-            {recording ? (
-              <SimpleLineIcons name="control-pause" size={24} color="red" />
-            ) : (
-              <SimpleLineIcons name="microphone" size={24} color="black" />
-            )}
-          </TouchableOpacity>
-        </View>
+          </>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

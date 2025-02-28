@@ -103,6 +103,63 @@ const styles = StyleSheet.create({
       width: '100%',
       backgroundColor: 'black',
     },
+
+    userNameInputContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      width: '100%',
+      alignItems: 'center',
+      padding: 20,
+    },
+    blurContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    userNameInputBox: {
+      backgroundColor: 'white',
+      borderRadius: 8,
+      padding: 20,
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    userNameLabel: {
+      fontSize: 20,
+      marginBottom: 10,
+      fontFamily: 'serif',
+      color: '#ddd',
+    },
+    userNameInput: {
+      height: 40,
+      width: '100%',
+      borderColor: '#ccc',
+      borderWidth: 1,
+      borderRadius: 5,
+      paddingLeft: 10,
+      fontSize: 16,
+      marginBottom: 10,
+      placeholderTextColor: '#ddd',
+    },
+    saveButton: {
+      backgroundColor: '#007bff', // Blue button
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+      marginTop: 10,
+    },
+    saveButtonText: {
+      color: 'white',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    errorText: {
+      color: 'red',
+      marginTop: 10,
+      fontSize: 14,
+    },
   });
   
 
