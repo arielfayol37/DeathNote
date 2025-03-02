@@ -1,4 +1,5 @@
-// components/NotesList.js
+// @app/(tabs)/components/NotesList.jsx
+
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, SafeAreaView, ImageBackground } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -8,7 +9,6 @@ import { sendNoteWithFormData } from './sendNoteToServer';
 import { RefreshContext } from '../RefreshContext';
 import CustomLoader from './customLoader';
 
-const STORAGE_KEY = 'user_name.txt';
 const LOADING_GIF = require('../../../assets/images/earth_rotate.gif');
 
 const formatTimestamp = (timestamp) => {
@@ -28,12 +28,10 @@ const formatTimestamp = (timestamp) => {
 export default function NotesList({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userName, setUserName] = useState('Author');
-  const { shouldRefreshNotes, setShouldRefreshNotes } = useContext(RefreshContext);
+  const { shouldRefreshNotes, setShouldRefreshNotes, settings } = useContext(RefreshContext);
 
   useEffect(() => {
     // Load notes once on mount
-    loadUserName();
     loadNotesFolders();
   }, []);
 
@@ -41,35 +39,12 @@ export default function NotesList({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       if (shouldRefreshNotes) {
-        loadUserName();
         loadNotesFolders();
-        // reset the global state so it doesn't keep triggering
         setShouldRefreshNotes(false);
       }
     }, [shouldRefreshNotes])
   );
 
-
-  
-   // Function to load the saved name
-  const loadUserName = async () => {
-    try {
-      // Check if the file exists
-      const fileInfo = await FileSystem.getInfoAsync(FileSystem.documentDirectory + STORAGE_KEY);
-  
-      // If the file exists and contains content, set the name
-      if (fileInfo.exists) {
-        const savedName = await FileSystem.readAsStringAsync(FileSystem.documentDirectory + STORAGE_KEY);
-        setUserName(savedName.trim()); // Update state with the saved name
-      } else {
-        // File doesn't exist, no name saved
-        setUserName("Author"); // Or set to an empty string, if preferred
-      }
-    } catch (error) {
-      console.warn('Error loading user name:', error);
-    }
-  };
-  
   /**
    * Load local notes first, then do background fetches for any missing AI info.
    */
@@ -80,7 +55,7 @@ export default function NotesList({ navigation }) {
 
       // Ensure notes directory exists
       await FileSystem.makeDirectoryAsync(notesDir, { intermediates: true });
-      
+
       // Read subfolders (each subfolder is a "note")
       const folders = await FileSystem.readDirectoryAsync(notesDir);
       // Sort so newest (largest timestamp) first
@@ -120,7 +95,7 @@ export default function NotesList({ navigation }) {
       // Kick off background fetch for missing AI info
       noteObjects.forEach((noteObj) => {
         if (!noteObj.aiInfo) {
-          fetchAiInfoInBackground(noteObj.folderName);
+          fetchAiInfoInBackground(noteObj.folderName, noteObjects);
         }
       });
 
@@ -133,19 +108,36 @@ export default function NotesList({ navigation }) {
 
   /**
    * For a given folderName, fetch AI info from the server (if needed),
-   * and write it to disk + update state once complete.
+   * including up to 100 previous AI summaries in oldest->newest order.
    */
-  const fetchAiInfoInBackground = async (folderName) => {
+  const fetchAiInfoInBackground = async (folderName, allNotes) => {
     try {
-      const endpoint = 'https://arielfayol.com/api/notes/summarize/' + userName;
-      const aiData = await sendNoteWithFormData(folderName, endpoint);
+      const endpoint = 'https://arielfayol.com/api/notes/summarize/';
+
+      // 1. Find the current note based on folderName
+      const currentNote = allNotes.find((n) => n.folderName === folderName);
+      if (!currentNote) return; // safety check
+
+      // 2. Gather all older notes (with existing AI summaries)
+      //    Sort them oldest->newest, then take up to 50.
+      const previousSummaries = allNotes
+        .filter((n) => n.timestamp < currentNote.timestamp && n.aiInfo?.summary)
+        .sort((a, b) => a.timestamp - b.timestamp) // oldest to newest
+        .slice(-50) // only keep up to the last 50
+        .map((n) => ({
+          title: n.aiInfo.title,
+          summary: n.aiInfo.summary,
+          timestamp: formatTimestamp(n.timestamp),
+        }));
+      // 3. Send to server with the previousSummaries array
+      const aiData = await sendNoteWithFormData(folderName, endpoint, settings, previousSummaries);
+
+      // 4. Write the new data to disk
       const folderPath = FileSystem.documentDirectory + 'notes/' + folderName + '/';
       const aiInfoPath = folderPath + 'ai_info.json';
-
-      // Write the new data to disk
       await FileSystem.writeAsStringAsync(aiInfoPath, JSON.stringify(aiData));
 
-      // Update the corresponding note in state
+      // 5. Update the corresponding note in state
       setNotes((prevNotes) =>
         prevNotes.map((n) => {
           if (n.folderName === folderName) {
@@ -182,11 +174,11 @@ export default function NotesList({ navigation }) {
   const renderNoteItem = ({ item }) => {
     const { folderName, timestamp, aiInfo, isFetching } = item;
     const dateString = formatTimestamp(timestamp);
-  
+
     // Default text values
     let displayTitle = `Note @ ${dateString}`;
     let displaySummary = '';
-  
+
     if (aiInfo?.title) {
       displayTitle = aiInfo.title;
     }
@@ -196,7 +188,7 @@ export default function NotesList({ navigation }) {
           ? aiInfo.summary.slice(0, 200) + '...'
           : aiInfo.summary;
     }
-  
+
     return (
       <TouchableOpacity
         style={styles.noteItem}
@@ -208,7 +200,11 @@ export default function NotesList({ navigation }) {
           {isFetching ? (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <CustomLoader size={40} loading_gif={LOADING_GIF} />
-              <Text style={styles.noteSummary}>Loading AI Summary...Touch to proceed without summary</Text>
+              <Text style={styles.noteSummary}>
+                {settings.language === 'english'
+                  ? `${settings.shinigami} is thinking...Touch to proceed`
+                  : `${settings.shinigami} pense...Appuis pour continuer sans ses pensées`}
+              </Text>
             </View>
           ) : (
             <Text style={styles.noteTitle}>{displayTitle}</Text>

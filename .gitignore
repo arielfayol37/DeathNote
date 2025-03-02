@@ -1,2 +1,4 @@
 /server/DeathNote/temp_uploads/*
 /server/DeathNote/static/apks/*
+/frontend/android
+/frontend/ios

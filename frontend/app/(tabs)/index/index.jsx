@@ -1,5 +1,5 @@
 // @app/(tabs)/index/index.jsx
-import React, { useState, useEffect, useRef, useContext } from 'react'; 
+import React, { useState, useRef, useContext } from 'react'; 
 import { 
   View, 
   TextInput, 
@@ -11,9 +11,12 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   Animated,
+  Alert,
+  Settings,
 } from 'react-native';
+
 import { useHeaderHeight } from '@react-navigation/elements'
-import * as FileSystem from 'expo-file-system'; // <-- Import FileSystem
+import * as FileSystem from 'expo-file-system';
 
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
@@ -24,10 +27,13 @@ import { BlurView } from 'expo-blur';
 import { startRecording, stopRecording, playAudio } from './audioUtils';
 import { uploadImage } from './imageUpload';
 import styles from './styles';
+
+
+import SettingsForm from './SettingsForm';
 import CustomLoader from '../components/customLoader';
 import { RefreshContext } from '../RefreshContext';
 
-const STORAGE_KEY = 'user_name.txt'; // File name to store the user's name
+
 
 export default function App() {
   const [items, setItems] = useState([{ type: 'text', text: '' }]);
@@ -35,10 +41,11 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [recording, setRecording] = useState(null);
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
-  const { setShouldRefreshNotes } = useContext(RefreshContext);
+  const { setShouldRefreshNotes, errorMessage, setErrorMessage, settings, setSettings,
+          saveSettings, hasSettings
+   } = useContext(RefreshContext);
 
-  const [userName, setUserName] = useState(null); // State to hold the user's name
-  const [errorMessage, setErrorMessage] = useState(''); // State for validation message
+
   // Keep track of the currently playing sound object
   const soundRef = useRef(null);
 
@@ -47,43 +54,6 @@ export default function App() {
   const loudnessAnims = useRef({});
 
   const scrollViewRef = useRef(null);
-
-  useEffect(() => {
-    // Check if user name is stored, otherwise prompt for it
-    checkUserName();
-  }, []);
-
-  const checkUserName = async () => {
-    try {
-      const userInfo = await FileSystem.readAsStringAsync(
-        FileSystem.documentDirectory + STORAGE_KEY
-      );
-      setUserName(userInfo);
-    } catch (error) {
-      // File doesn't exist or failed to read
-      setUserName(null);
-    }
-  };
-
-
-  const saveUserName = async () => {
-    if (!currentText.trim()) {
-      setErrorMessage('Please enter a valid name.');
-      return;
-    }
-  
-    try {
-      await FileSystem.writeAsStringAsync(
-        FileSystem.documentDirectory + STORAGE_KEY,
-        currentText.trim()
-      );
-      setUserName(currentText.trim());
-      setCurrentText('');
-      setErrorMessage('');
-    } catch (error) {
-      console.warn('Error saving user name:', error);
-    }
-  };
 
   const getProgressAnim = (index) => {
     if (!progressAnims.current[index]) {
@@ -226,6 +196,16 @@ export default function App() {
    */
   const handleSaveNote = async () => {
     try {
+        if (items.length === 1 && currentText === '') {
+          if (settings.language === 'english'){
+            Alert.alert('Error', 'Cannot save an empty note.');
+          }else{
+            Alert.alert('Erreur', 'Impossible d\'enregistrer une note vide.');
+          }
+          
+          return;
+        }
+
       // 1. Create a unique directory for this note
       const timestamp = Date.now();
       const noteFolder = FileSystem.documentDirectory + `notes/${timestamp}/`;
@@ -241,19 +221,17 @@ export default function App() {
         if (item.type === 'text') {
           // Just store text as-is
           finalItems.push(item);
-        } 
-        else if (item.type === 'image') {
+        } else if (item.type === 'image') {
           // Copy the image file to noteFolder
-          const newFileName = `image-${i}.jpg`; // or .png etc.
+          const newFileName = `image-${i}.jpg`;
           const newPath = noteFolder + newFileName;
           await FileSystem.copyAsync({ from: item.uri, to: newPath });
 
           // Then store the item with updated URI
           finalItems.push({ type: 'image', uri: newPath });
-        }
-        else if (item.type === 'audio') {
+        } else if (item.type === 'audio') {
           // Copy the audio file
-          const newFileName = `audio-${i}.m4a`; // or .wav, etc.
+          const newFileName = `audio-${i}.m4a`;
           const newPath = noteFolder + newFileName;
           await FileSystem.copyAsync({ from: item.uri, to: newPath });
 
@@ -270,8 +248,12 @@ export default function App() {
       const noteJson = JSON.stringify(finalItems, null, 2);
       await FileSystem.writeAsStringAsync(noteFolder + 'note.json', noteJson);
 
-      // console.log('Note saved to folder:', noteFolder);
-      alert('Note saved successfully!');
+      if(settings.language === 'english'){
+        Alert.alert('Success', 'Note saved successfully!');
+      }else{
+        Alert.alert('Succès', 'Noté avec succès!');
+      }
+      
       
       setItems([]);
       setCurrentIndex(0);
@@ -284,44 +266,26 @@ export default function App() {
     }
   };
 
-// Updated UI for input with validation
-const renderUserNameInput = () => {
-  return (
-    <View style={styles.userNameInputContainer}>
-      <View style={styles.userNameInputBox}>
-        <Text style={styles.userNameLabel}>What can I call you?</Text>
-        <TextInput
-          placeholder="Enter username"
-          style={styles.userNameInput}
-          value={currentText}
-          onChangeText={(text) => {
-            setCurrentText(text);
-            if (errorMessage) setErrorMessage(''); // Clear error when user starts typing
-          }}
-        />
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-        <TouchableOpacity onPress={saveUserName} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
 
+  // MAIN RENDER
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
+
+        {/* If settings already exist, go to main note UI; otherwise show settings form */}
+        {hasSettings ? (
+        <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
         keyboardVerticalOffset={useHeaderHeight()}
-      >
-        {userName ? (
+        >
           <View style={styles.noteBox}>
             <ScrollView
               ref={scrollViewRef}
               onContentSizeChange={() =>
-                currentIndex === items.length - 1 ? scrollViewRef.current?.scrollToEnd({ animated: true }) : null
+                currentIndex === items.length - 1
+                  ? scrollViewRef.current?.scrollToEnd({ animated: true })
+                  : null
               }
             >
               <View style={{ height: 50 }} />
@@ -372,7 +336,6 @@ const renderUserNameInput = () => {
                                 : 'caret-forward-circle-outline'
                             }
                             size={37}
-                            color="black"
                           />
                         </TouchableOpacity>
                         <Text style={styles.audioDuration}>{item.duration}</Text>
@@ -397,14 +360,19 @@ const renderUserNameInput = () => {
                 })}
 
                 {/* Button to add new blank text item */}
-                <TouchableOpacity onPress={addNewText} style={{ margin: 8 }} hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}>
-                  <AntDesign name="pluscircleo" size={24} color="black" />
+                <TouchableOpacity
+                  onPress={addNewText}
+                  style={{ margin: 8 }}
+                  hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
+                >
+                  <AntDesign name="pluscircleo" size={24} />
                 </TouchableOpacity>
               </View>
 
               <View style={{ height: 75 }} />
             </ScrollView>
 
+            {/* Top Blur Overlay */}
             <BlurView
               intensity={5}
               tint="light"
@@ -431,18 +399,12 @@ const renderUserNameInput = () => {
               }}
               pointerEvents="none"
             />
-          </View>
-        ) : (
-          renderUserNameInput()
-        )}
-
-        {userName ? (
-          <>
-            <TouchableOpacity 
+          </View>   
+          <TouchableOpacity 
               onPress={handleSaveNote}
               hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
             >
-              <MaterialCommunityIcons name="draw-pen" size={24} color="black" />
+              <MaterialCommunityIcons name="draw-pen" size={24} />
             </TouchableOpacity>
 
             <View style={styles.interactionArea}>
@@ -450,7 +412,7 @@ const renderUserNameInput = () => {
                 onPress={handleImageUpload}
                 hitSlop={{ top: 15, right: 15, bottom: 15, left: 15 }}
               >
-                <AntDesign name="camerao" size={24} color="black" />
+                <AntDesign name="camerao" size={24} />
               </TouchableOpacity>
 
               {recording ? (
@@ -459,7 +421,7 @@ const renderUserNameInput = () => {
                 <TextInput
                   style={styles.input}
                   autoCorrect={false}
-                  placeholder="Write your note here"
+                  placeholder={settings.language==='english'? "Write your note here": "Ecris ici"}
                   value={currentText}
                   onChangeText={handleTextInput}
                   multiline={true}
@@ -473,14 +435,25 @@ const renderUserNameInput = () => {
                 {recording ? (
                   <SimpleLineIcons name="control-pause" size={24} color="red" />
                 ) : (
-                  <SimpleLineIcons name="microphone" size={24} color="black" />
+                  <SimpleLineIcons name="microphone" size={24} />
                 )}
               </TouchableOpacity>
-            </View>
-          </>
-        ) : null}
-      </KeyboardAvoidingView>
+            </View>       
+
+        </KeyboardAvoidingView>
+        ) : (
+          // Show the user settings form if we do NOT have valid settings yet
+
+          <SettingsForm
+            settings={settings}
+            setSettings={setSettings}
+            errorMessage={errorMessage}
+            setErrorMessage={setErrorMessage}
+            saveSettings={saveSettings}
+          />
+        )}
+
+      
     </SafeAreaView>
   );
 }
-

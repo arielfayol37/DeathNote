@@ -9,6 +9,7 @@ import { OpaqueColorValue, StyleProp, ViewStyle } from 'react-native';
 const MAPPING = {
   // See MaterialIcons here: https://icons.expo.fyi
   // See SF Symbols in the SF Symbols app on Mac.
+  'settings':'settings-suggest',
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'book.fill':'menu-book',

@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Note
 from .serializers import NoteSerializer
-from .utils import get_title, get_embedding, handle_uploaded_file, describe_image, transcribe_audio, parse_entry
+from .utils import get_title, get_embedding, handle_uploaded_file, describe_image, transcribe_audio, parse_entry, format_timestamp
 import whisper 
 from rest_framework.views import APIView
 import json
 from django.http import FileResponse
 import os
-transcription_model = whisper.load_model(name="large", device="cuda")
+
 
 def download_apk(request):
     """Download the DeathNote APK file"""
@@ -101,14 +101,18 @@ class NoteUploadView(APIView):
       - file_0, file_1, ... (UploadedFiles) 
     """
 
-    def post(self, request, username):
+    def post(self, request):
 
         # 1) Extract the noteData JSON from the form
         note_data_str = request.data.get('noteData')
-        if not note_data_str:
-            return Response({"error": "Missing noteData field"}, status=status.HTTP_400_BAD_REQUEST)
+        user_settings_str = request.data.get('settings')
+        old_summaries = request.data.get("previousSummaries")
+        if not note_data_str or not user_settings_str:
+            return Response({"error": "Missing noteData or settings field"}, status=status.HTTP_400_BAD_REQUEST)
 
         note_data = json.loads(note_data_str)
+        user_settings = json.loads(user_settings_str)
+        old_summaries = json.loads(old_summaries)
         items = note_data.get('items', [])
         timestamp = note_data.get('timestamp', None)
 
@@ -132,10 +136,11 @@ class NoteUploadView(APIView):
             uploaded_file = request.FILES[field_name]
             saved_path = handle_uploaded_file(uploaded_file)
             image_text = describe_image(saved_path)
-            results[i] = "<image description start> " + image_text + "<image description end>\n\n"
+            results[i] = "<image transcription start> " + image_text + "<image transcription end>\n\n"
 
         # Process all audio items in one batch
         audio_indices = [i for i, item in enumerate(items) if item.get('type') == 'audio']
+        if audio_indices: transcription_model = whisper.load_model(name="large", device="cuda")
         for i in audio_indices:
             item = items[i]
             field_name = item.get('fieldName')
@@ -147,14 +152,23 @@ class NoteUploadView(APIView):
             audio_text = transcribe_audio(transcription_model, saved_path)
             results[i] = "<audio transcription start>" + audio_text + "<audio transcription end>\n\n"
 
+
+        if len(old_summaries) == 0:
+            prepend = "<old summaries start> Old summaries NOT AVAILABLE <old summaries end>"
+        else:
+            prepend = "<old summaries start>"
+            for summary in old_summaries:
+                prepend += f"\n\n {summary['timestamp']}:\n <title>{summary['title']}</title> <summary>{summary['summary']}</summary>" 
+            prepend += "<old summaries end>"
         # Combine results in original order
-        raw_text = "".join(r if r is not None else "" for r in results)
-        title, summary = parse_entry(text=raw_text, name=username)
+        current_entry = "".join(r if r is not None else "" for r in results).strip()
+        raw_text = prepend + "\n\n\n" + "<current entry start>\n" + format_timestamp(int(timestamp)) + ": \n" + current_entry + "<current entry end>"
+        title, summary = parse_entry(text=raw_text, user_settings=user_settings)
         # 3) Return a success response
         return Response({
             "summary": summary,
             "timestamp": timestamp,
-            "raw_text": raw_text.strip(),
+            "raw_text": current_entry,
             "title": title,
         }, status=status.HTTP_200_OK)
 

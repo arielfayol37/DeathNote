@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 import App from './index/index';
 import NotesStack from './components/NotesStack';
+import Settings from './components/Settings';
 import { RefreshProvider } from './RefreshContext';
 
 const Drawer = createDrawerNavigator();
@@ -48,6 +49,16 @@ export default function DrawerLayout() {
             drawerIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
           }}
         />
+
+        <Drawer.Screen
+            name="Settings"
+            component={Settings}
+            options={{
+              title: '',
+              drawerIcon: ({ color }) => <IconSymbol size={28} name="gearshape" color={color} />,
+            }}
+          />
+        
         </Drawer.Navigator>
     </RefreshProvider>
 

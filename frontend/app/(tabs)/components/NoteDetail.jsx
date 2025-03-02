@@ -1,13 +1,11 @@
 // components/NoteDetail.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Image,
   TouchableOpacity,
-  Pressable,
-  StyleSheet,
   Animated,
   SafeAreaView,
   KeyboardAvoidingView,
@@ -26,6 +24,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
  */
 import { playAudio } from '../index/audioUtils';
 import styles from '../index/styles';
+import { RefreshContext } from '../RefreshContext';
 
 export default function NoteDetail({ route }) {
   const { folderName } = route.params; // e.g. "1677158025412"
@@ -33,7 +32,7 @@ export default function NoteDetail({ route }) {
   const [aiInfo, setAiInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('original');
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
-  const [userName, setUserName] = useState('');
+  const { settings } = useContext(RefreshContext);
 
   const soundRef = useRef(null);
 
@@ -240,16 +239,20 @@ export default function NoteDetail({ route }) {
               {/* Show raw text if activeTab is 'raw_text' */}
               {activeTab === 'raw_text' && aiInfo?.raw_text && (
                 <View style={{ padding: 20 }}>
-                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>Text Only</Text>
-                  <Text selectable>{aiInfo.raw_text}</Text>
+                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>
+                    {settings.language === 'english'? 'Text Only': 'Texte uniquement'}
+                  </Text>
+                  <Text style={styles.text} selectable>{aiInfo.raw_text}</Text>
                 </View>
               )}
 
               {/* Show summary if activeTab is 'summary' */}
               {activeTab === 'summary' && aiInfo?.summary && (
                 <View style={{ padding: 20 }}>
-                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>AI Summary</Text>
-                  <Text>{aiInfo.summary}</Text>
+                  <Text style={{ fontWeight: 'bold', fontSize:20, marginBottom: 10}}>
+                    {settings.language === 'english'? settings.shinigami + '\'s Thoughts': 'Les pensées de ' + settings.shinigami}
+                  </Text>
+                  <Text style={styles.text} selectable>{aiInfo.summary}</Text>
                 </View>
               )}
             </View>
