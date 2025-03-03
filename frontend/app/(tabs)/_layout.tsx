@@ -1,16 +1,14 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import React from 'react';
 import { Platform } from 'react-native';
-
-import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 import App from './index/index';
 import NotesStack from './components/NotesStack';
 import Settings from './components/Settings';
+import AiChat from './components/AiChat';
 import { RefreshProvider } from './RefreshContext';
 
 const Drawer = createDrawerNavigator();
@@ -28,7 +26,7 @@ export default function DrawerLayout() {
             drawerActiveTintColor: Colors[colorScheme ?? 'light'].tint,
             drawerStyle: Platform.select({
               ios: {
-                position: 'absolute',
+          position: 'absolute',
               },
               default: {},
             }),
@@ -51,14 +49,22 @@ export default function DrawerLayout() {
         />
 
         <Drawer.Screen
+            name="AiChat"
+            component={AiChat}
+            options={{
+              title: '',
+              drawerIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+            }}
+          />
+
+        <Drawer.Screen
             name="Settings"
             component={Settings}
             options={{
               title: '',
-              drawerIcon: ({ color }) => <IconSymbol size={28} name="gearshape" color={color} />,
+              drawerIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
             }}
           />
-        
         </Drawer.Navigator>
     </RefreshProvider>
 

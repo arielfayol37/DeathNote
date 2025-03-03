@@ -12,7 +12,7 @@ export default function Settings() {
     saveSettings();
     if(settings.name != ''){
         if(settings.language === 'english'){
-            Alert.alert('Success', 'settings saved!')
+            Alert.alert('Success', 'Settings saved!')
         }else{
             Alert.alert('Succès', 'Enregistré!')
         }
@@ -20,7 +20,7 @@ export default function Settings() {
   }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1, backgroundColor: 'black'}}>
         <SettingsForm
         settings={settings}
         setSettings={setSettings}

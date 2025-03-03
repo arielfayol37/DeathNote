@@ -4,13 +4,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Note
 from .serializers import NoteSerializer
-from .utils import get_title, get_embedding, handle_uploaded_file, describe_image, transcribe_audio, parse_entry, format_timestamp
+from .utils import get_title, get_embedding, handle_uploaded_file, describe_image, transcribe_audio, parse_entry, format_timestamp, chat_with_shinigami
 import whisper 
 from rest_framework.views import APIView
 import json
 from django.http import FileResponse
 import os
 
+transcription_model = None
 
 def download_apk(request):
     """Download the DeathNote APK file"""
@@ -85,6 +86,105 @@ def delete_note(request, note_id):
         return Response({'error': 'Note not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['POST'])
+def chat(request):
+    """
+    Chat with AI endpoint.
+    Expects a multipart/form-data POST with:
+    - working_memory: String of past interactions/context
+    - updated_messages: JSON string of current chat history
+    - settings: JSON string of user settings
+    - message_type: String ('text', 'audio', or 'image')
+    - message_content: String (for text) or UploadedFile (for audio/image)
+    Returns:
+    - text_reply: AI's response as a string
+    - updated_messages: Updated chat history as a list
+    """
+
+    # Extract data from the request
+    working_memory = request.data.get('working_memory', '')
+    updated_messages_str = request.data.get('updated_messages', '[]')
+    settings_str = request.data.get('settings', '{}')
+    message_type = request.data.get('message_type')
+    message_content = request.data.get('message_content')
+    
+    # Validate required fields
+    if not message_type or not message_content:
+        return Response(
+            {"error": "Missing message_type or message_content"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Parse JSON strings
+    try:
+        updated_messages = json.loads(updated_messages_str)
+        user_settings = json.loads(settings_str)
+    except json.JSONDecodeError as e:
+        return Response(
+            {"error": f"Invalid JSON in updated_messages or settings: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Initialize message variable
+    message = None
+
+    # Process the message based on its type
+    if message_type == 'text':
+        message = message_content
+    elif message_type == 'audio':
+        # Handle audio file upload and transcription
+        if 'message_content' not in request.FILES:
+            return Response(
+                {"error": "No audio file provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        audio_file = request.FILES['message_content']
+        saved_path = handle_uploaded_file(audio_file)
+        global transcription_model
+        if transcription_model is None:
+            transcription_model = whisper.load_model(name="large", device="cuda")
+        message = transcribe_audio(transcription_model, saved_path)
+        message = f"<audio transcription start>{message}<audio transcription end>"
+        # Clean up the saved file
+        if os.path.exists(saved_path):
+            os.remove(saved_path)
+    elif message_type == 'image':
+        # Handle image file upload and description
+        if 'message_content' not in request.FILES:
+            return Response(
+                {"error": "No image file provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        image_file = request.FILES['message_content']
+        saved_path = handle_uploaded_file(image_file)
+        message = describe_image(saved_path)
+        message = f"<image transcription start>{message}<image transcription end>"
+        # Clean up the saved file
+        if os.path.exists(saved_path):
+            os.remove(saved_path)
+    else:
+        return Response(
+            {"error": f"Unsupported message_type: {message_type}"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Call the chat_with_shinigami function (assumed to be implemented)
+    text_reply, updated_messages = chat_with_shinigami(
+        working_memory=working_memory,
+        chat_messages=updated_messages,
+        message=message,
+        user_settings=user_settings
+    )
+
+    # Return the response
+    return Response(
+        {
+            "text_reply": text_reply,
+            "updated_messages": updated_messages
+        },
+        status=status.HTTP_200_OK
+    )
+
 class NoteUploadView(APIView):
     """
     Expects a multipart/form-data POST with:
@@ -140,7 +240,8 @@ class NoteUploadView(APIView):
 
         # Process all audio items in one batch
         audio_indices = [i for i, item in enumerate(items) if item.get('type') == 'audio']
-        if audio_indices: transcription_model = whisper.load_model(name="large", device="cuda")
+        global transcription_model
+        if audio_indices and transcription_model is None: transcription_model = whisper.load_model(name="large", device="cuda")
         for i in audio_indices:
             item = items[i]
             field_name = item.get('fieldName')
@@ -151,7 +252,7 @@ class NoteUploadView(APIView):
             saved_path = handle_uploaded_file(uploaded_file)
             audio_text = transcribe_audio(transcription_model, saved_path)
             results[i] = "<audio transcription start>" + audio_text + "<audio transcription end>\n\n"
-
+        transcription_model = None
 
         if len(old_summaries) == 0:
             prepend = "<old summaries start> Old summaries NOT AVAILABLE <old summaries end>"

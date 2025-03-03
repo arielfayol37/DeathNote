@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import download_apk, get_notes, create_note, delete_note, search_notes, NoteUploadView
+from .views import chat, download_apk, get_notes, create_note, delete_note, search_notes, NoteUploadView
 
 urlpatterns = [
+    path('chat', chat, name='chat'),
     path('download', download_apk, name='download_apk'),
     path('notes/', get_notes, name='get_notes'),
     path('notes/create/', create_note, name='create_note'),

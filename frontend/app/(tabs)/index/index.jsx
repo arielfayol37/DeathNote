@@ -12,7 +12,6 @@ import {
   SafeAreaView, 
   Animated,
   Alert,
-  Settings,
 } from 'react-native';
 
 import { useHeaderHeight } from '@react-navigation/elements'
@@ -45,7 +44,7 @@ export default function App() {
           saveSettings, hasSettings
    } = useContext(RefreshContext);
 
-
+  const headerHeight = useHeaderHeight();
   // Keep track of the currently playing sound object
   const soundRef = useRef(null);
 
@@ -277,7 +276,7 @@ export default function App() {
         <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
-        keyboardVerticalOffset={useHeaderHeight()}
+        keyboardVerticalOffset={headerHeight}
         >
           <View style={styles.noteBox}>
             <ScrollView

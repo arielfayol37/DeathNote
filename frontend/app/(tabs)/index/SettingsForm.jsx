@@ -86,7 +86,7 @@ export default function SettingsForm({ settings, setSettings, errorMessage, setE
       {/* Preferred Language (english or french) */}
       <View style={settingsStyles.settingsBlock}>
           
-          <Text style={settingsStyles.fieldLabel}>{settings.language === 'english'? 'You prefer': 'Je préfère'}</Text>
+          <Text style={settingsStyles.fieldLabel}>{settings.language === 'english'? 'You prefer': 'Tu préfères'}</Text>
           <View style={settingsStyles.settingsOptionContainer}>
             <TouchableOpacity
               style={[
