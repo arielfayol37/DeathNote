@@ -1,5 +1,5 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Platform } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
@@ -9,12 +9,17 @@ import App from './index/index';
 import NotesStack from './components/NotesStack';
 import Settings from './components/Settings';
 import AiChat from './components/AiChat';
-import { RefreshProvider } from './RefreshContext';
+import { RefreshProvider, RefreshContext } from './RefreshContext';
 
 const Drawer = createDrawerNavigator();
 
 export default function DrawerLayout() {
   const colorScheme = useColorScheme();
+  const { settings } = useContext(RefreshContext);
+  const noteTitle = settings.language === 'english'? 'Write Note': 'Prends Note';
+  const noteStackTitle = settings.language === 'english'? 'Notes': 'Notes';
+  const settingsTitle = settings.language === 'english' ? 'Settings': 'Paramètres';
+  const chatTitle = settings.language === 'english' ? 'Chat with' + settings.shinigami: 'Cause avec' + settings.shinigami;
 
   return (
 
@@ -35,7 +40,7 @@ export default function DrawerLayout() {
             name="index"
             component={App}
             options={{
-              title: '',
+              title: noteTitle,
               drawerIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
             }}
           />
@@ -43,7 +48,7 @@ export default function DrawerLayout() {
           name="NotesStack"
           component={NotesStack}
           options={{
-            title: '',
+            title: noteStackTitle,
             drawerIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
           }}
         />
@@ -52,7 +57,7 @@ export default function DrawerLayout() {
             name="AiChat"
             component={AiChat}
             options={{
-              title: '',
+              title: chatTitle,
               drawerIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
             }}
           />
@@ -61,7 +66,7 @@ export default function DrawerLayout() {
             name="Settings"
             component={Settings}
             options={{
-              title: '',
+              title: settingsTitle,
               drawerIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
             }}
           />

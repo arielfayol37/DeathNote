@@ -10,8 +10,9 @@ from rest_framework.views import APIView
 import json
 from django.http import FileResponse
 import os
+import gc
 
-transcription_model = None
+transcription_model =  whisper.load_model(name="small", device="cuda")
 
 def download_apk(request):
     """Download the DeathNote APK file"""
@@ -140,9 +141,6 @@ def chat(request):
             )
         audio_file = request.FILES['message_content']
         saved_path = handle_uploaded_file(audio_file)
-        global transcription_model
-        if transcription_model is None:
-            transcription_model = whisper.load_model(name="large", device="cuda")
         message = transcribe_audio(transcription_model, saved_path)
         message = f"<audio transcription start>{message}<audio transcription end>"
         # Clean up the saved file
@@ -240,8 +238,6 @@ class NoteUploadView(APIView):
 
         # Process all audio items in one batch
         audio_indices = [i for i, item in enumerate(items) if item.get('type') == 'audio']
-        global transcription_model
-        if audio_indices and transcription_model is None: transcription_model = whisper.load_model(name="large", device="cuda")
         for i in audio_indices:
             item = items[i]
             field_name = item.get('fieldName')
@@ -252,8 +248,7 @@ class NoteUploadView(APIView):
             saved_path = handle_uploaded_file(uploaded_file)
             audio_text = transcribe_audio(transcription_model, saved_path)
             results[i] = "<audio transcription start>" + audio_text + "<audio transcription end>\n\n"
-        transcription_model = None
-
+        
         if len(old_summaries) == 0:
             prepend = "<old summaries start> Old summaries NOT AVAILABLE <old summaries end>"
         else:
@@ -265,6 +260,7 @@ class NoteUploadView(APIView):
         current_entry = "".join(r if r is not None else "" for r in results).strip()
         raw_text = prepend + "\n\n\n" + "<current entry start>\n" + format_timestamp(int(timestamp)) + ": \n" + current_entry + "<current entry end>"
         title, summary = parse_entry(text=raw_text, user_settings=user_settings)
+        gc.collect()
         # 3) Return a success response
         return Response({
             "summary": summary,

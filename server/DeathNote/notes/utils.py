@@ -2,7 +2,6 @@ import ollama
 import os, uuid
 from openai import OpenAI
 from datetime import datetime
-
 # Point to the local server
 client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 
@@ -172,7 +171,8 @@ def describe_image(image_path):
       messages=[system_prompt, {
           'role': 'user',
           'content': 'The following is an image I took, describe it fully as instructed (You should be explicit if the image is as well): ',
-          'images': [image_path]
+          'images': [image_path],
+          'keep_alive':-1
       }]
   )
   content = response["message"]["content"]
