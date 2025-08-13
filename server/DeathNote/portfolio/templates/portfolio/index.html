@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fayol Ateufack</title>
+    <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Fayol Ateufack</h1>
+        <p>{{ about_me }}</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Research Projects</h2>
+            <div class="card-container">
+                {% for project in projects %}
+                <div class="card">
+                        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="card-img">
+                        <div class="card-content">
+                            <h3>{{ project.title }}</h3>
+                            <p>{{ project.description|truncatewords:20 }}</p>
+                            <div class="skills">
+                                {% for skill in project.skills.all %}
+                                    <span class="skill">{{ skill.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                </div>
+                {% empty %}
+                <p>No projects to display yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section>
+            <h2>Work Experience</h2>
+            <div class="card-container">
+                {% for exp in experiences %}
+                <div class="card">
+                    {% if exp.image %}
+                        <img src="{{ exp.image.url }}" alt="{{ exp.title }} at {{ exp.company }}" class="card-img">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ exp.title }}</h3>
+                        <p><strong>{{ exp.company }}</strong></p>
+                        <p><em>{{ exp.start_date }}{% if exp.end_date %} - {{ exp.end_date }}{% else %} - Present{% endif %}</em></p>
+                        <p>{{ exp.description|truncatewords:20 }}</p>
+                        {% if exp.link %}
+                        <!-- <a href="{{ exp.link }}" target="_blank" class="exp-link">View</a> -->  
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p>No experience to display yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section>
+            <h2>Certifications / Achievements / Scholarships / Awards</h2>
+            <div class="card-container">
+                {% for award in awards %}
+                <div class="card">
+                    {% if award.image %}
+                        <img src="{{ award.image.url }}" alt="{{ award.title }}" class="card-img">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3>{{ award.title }}</h3>
+                        <p><em>{{ award.date }}</em></p>
+                        <p>{{ award.description|truncatewords:20 }}</p>
+                        {% if award.link %}
+                        <!-- <a href="{{ award.link }}" target="_blank" class="award-link">View</a> -->
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p>No awards to display yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section>
+            <h2>Thoughts/Blog</h2>
+            <p>Coming soon...</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; {{ now|date:"Y" }} Fayol Ateufack</p>
+    </footer>
+    
+    <script src="{% static 'portfolio/js/portfolio.js' %}"></script>
+</body>
+</html>

@@ -16,8 +16,12 @@ transcription_model =  whisper.load_model(name="small", device="cuda")
 
 def download_apk(request):
     """Download the DeathNote APK file"""
-    print(os.getcwd())
     apk_path = os.path.join('static', 'apks', 'deathnote.apk')
+    return FileResponse(open(apk_path, 'rb'), as_attachment=True, content_type='application/vnd.android.package-archive')
+
+def download_app(request, app_name):
+    """Download the DeathNote APK file"""
+    apk_path = os.path.join('static', 'apks', f'{app_name}.apk')
     return FileResponse(open(apk_path, 'rb'), as_attachment=True, content_type='application/vnd.android.package-archive')
 
 def cosine_similarity(vec1, vec2):
