@@ -1,3 +1,4 @@
+<!-- Test comment: This file has been successfully modified -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -5,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fayol Ateufack</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'portfolio/images/mars.ico' %}">
     <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -14,80 +16,455 @@
         <p>{{ about_me }}</p>
     </header>
 
+    <!-- Futuristic Tab Navigation -->
+    <nav class="tab-navigation">
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="portfolio">
+                <span class="tab-icon">🚀</span>
+                <span class="tab-text">Portfolio</span>
+                <div class="tab-glow"></div>
+            </button>
+            <button class="tab-btn" data-tab="about">
+                <span class="tab-icon">👨‍💻</span>
+                <span class="tab-text">About Me</span>
+                <div class="tab-glow"></div>
+            </button>
+            <button class="tab-btn" data-tab="blog">
+                <span class="tab-icon">📝</span>
+                <span class="tab-text">Blog</span>
+                <div class="tab-glow"></div>
+            </button>
+            <button class="tab-btn" data-tab="contact">
+                <span class="tab-icon">📧</span>
+                <span class="tab-text">Contact</span>
+                <div class="tab-glow"></div>
+            </button>
+            <button class="tab-btn" data-tab="resume">
+                <span class="tab-icon">📄</span>
+                <span class="tab-text">Resume</span>
+                <div class="tab-glow"></div>
+            </button>
+        </div>
+    </nav>
+
     <main>
-        <section>
-            <h2>Research Projects</h2>
-            <div class="card-container">
-                {% for project in projects %}
-                <div class="card">
-                        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="card-img">
+        <!-- Portfolio Tab Content -->
+        <div class="tab-content active" id="portfolio-content">
+            <section>
+                <h2>Research Projects</h2>
+                <div class="card-container">
+                    {% for project in projects %}
+                    <div class="card" {% if project.link %}data-link="{{ project.link }}"{% endif %}>
+                            <div class="card-img-container">
+                                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="card-img">
+                            </div>
+                            <div class="card-content">
+                                <h3>{{ project.title }}</h3>
+                                <p>{{ project.description }}</p>
+                                <div class="skills">
+                                    {% for skill in project.skills.all %}
+                                        <span class="skill">{{ skill.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                    </div>
+                    {% empty %}
+                    <p>No projects to display yet.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section>
+                <h2>Work Experience</h2>
+                <div class="card-container">
+                    {% for exp in experiences %}
+                    <div class="card" {% if exp.link %}data-link="{{ exp.link }}"{% endif %}>
+                        <div class="card-img-container {% if not exp.image %}placeholder{% endif %}">
+                            {% if exp.image %}
+                                <img src="{{ exp.image.url }}" alt="{{ exp.title }} at {{ exp.company }}" class="card-img">
+                            {% endif %}
+                        </div>
                         <div class="card-content">
-                            <h3>{{ project.title }}</h3>
-                            <p>{{ project.description|truncatewords:20 }}</p>
-                            <div class="skills">
-                                {% for skill in project.skills.all %}
-                                    <span class="skill">{{ skill.name }}</span>
-                                {% endfor %}
+                            <h3>{{ exp.title }}</h3>
+                            <p><strong>{{ exp.company }}</strong></p>
+                            <p><em>{{ exp.start_date }}{% if exp.end_date %} - {{ exp.end_date }}{% else %} - Present{% endif %}</em></p>
+                            <p>{{ exp.description }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No experience to display yet.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section>
+                <h2>Key Awards & Scholarships</h2>
+                <div class="card-container">
+                    {% for award in awards %}
+                    <div class="card" {% if award.link %}data-link="{{ award.link }}"{% endif %}>
+                        <div class="card-img-container {% if not award.image %}placeholder{% endif %}">
+                            {% if award.image %}
+                                <img src="{{ award.image.url }}" alt="{{ award.title }}" class="card-img">
+                            {% endif %}
+                        </div>
+                        <div class="card-content">
+                            <h3>{{ award.title }}</h3>
+                            <p><em>{{ award.date }}</em></p>
+                            <p>{{ award.description }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No awards to display yet.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <!-- About Me Tab Content -->
+        <div class="tab-content" id="about-content">
+            <section>
+                <h2>About Me</h2>
+                <div class="about-container">
+                    <div class="about-text">
+                        <p>Hi, I am Fayol. They call me AI guy. </p>
+                        <p>My #1 skill is that I learn really fast. Right now I am studying Computer Engineering and Physics as a side quest at Valparaiso University.</p>
+                        <p>Oh boy, I have lots of interests. I am lifelong learner. Space exploration, biotechnology, physics, software engineering, really anything techy/sciency/mathy. So my #2 is skill is that I usually have creative ideas and unconventional solutions.</p>
+                        <p>I enjoy working on extremely challenging problems with fast-moving cracked teams.</p>
+                        <p>Looking forward to inventing the future.</p>
+                    </div>
+                    <div class="skills-showcase">
+                        <h3>Technical Skills</h3>
+                        <div class="skill-categories">
+                            <div class="skill-category">
+                                <h4>Programming Languages</h4>
+                                <div class="skill-tags">
+                                    <span class="skill">Python</span>
+                                    <span class="skill">JavaScript</span>
+                                    <span class="skill">C</span>
+                                    <span class="skill">C++</span>
+                                    <span class="skill">Java</span>
+                                    <span class="skill">SQL</span>
+                                </div>
+                            </div>
+                            <div class="skill-category">
+                                <h4>Frameworks & Libraries</h4>
+                                <div class="skill-tags">
+                                    <span class="skill">PyTorch</span>
+                                    <span class="skill">TensorFlow</span>
+                                    <span class="skill">Django</span>
+                                    <span class="skill">FastAPI</span>
+                                    <span class="skill">React</span>
+                                    <span class="skill">React Native</span>
+                                </div>
+                            </div>
+                            <div class="skill-category">
+                                <h4>Cloud & DevOps</h4>
+                                <div class="skill-tags">
+                                    <span class="skill">AWS</span>
+                                    <span class="skill">GCP</span>
+                                    <span class="skill">Docker</span>
+                                    <span class="skill">Git</span>
+                                    <span class="skill">Linux</span>
+                                </div>
+                            </div>
+                            <div class="skill-category">
+                                <h4>Languages</h4>
+                                <div class="skill-tags">
+                                    <span class="skill">English (Fluent)</span>
+                                    <span class="skill">French (Fluent)</span>
+                                </div>
                             </div>
                         </div>
-                </div>
-                {% empty %}
-                <p>No projects to display yet.</p>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section>
-            <h2>Work Experience</h2>
-            <div class="card-container">
-                {% for exp in experiences %}
-                <div class="card">
-                    {% if exp.image %}
-                        <img src="{{ exp.image.url }}" alt="{{ exp.title }} at {{ exp.company }}" class="card-img">
-                    {% endif %}
-                    <div class="card-content">
-                        <h3>{{ exp.title }}</h3>
-                        <p><strong>{{ exp.company }}</strong></p>
-                        <p><em>{{ exp.start_date }}{% if exp.end_date %} - {{ exp.end_date }}{% else %} - Present{% endif %}</em></p>
-                        <p>{{ exp.description|truncatewords:20 }}</p>
-                        {% if exp.link %}
-                        <!-- <a href="{{ exp.link }}" target="_blank" class="exp-link">View</a> -->  
-                        {% endif %}
                     </div>
                 </div>
-                {% empty %}
-                <p>No experience to display yet.</p>
-                {% endfor %}
-            </div>
-        </section>
+            </section>
+        </div>
 
-        <section>
-            <h2>Certifications / Achievements / Scholarships / Awards</h2>
-            <div class="card-container">
-                {% for award in awards %}
-                <div class="card">
-                    {% if award.image %}
-                        <img src="{{ award.image.url }}" alt="{{ award.title }}" class="card-img">
-                    {% endif %}
-                    <div class="card-content">
-                        <h3>{{ award.title }}</h3>
-                        <p><em>{{ award.date }}</em></p>
-                        <p>{{ award.description|truncatewords:20 }}</p>
-                        {% if award.link %}
-                        <!-- <a href="{{ award.link }}" target="_blank" class="award-link">View</a> -->
-                        {% endif %}
+        <!-- Blog Tab Content -->
+        <div class="tab-content" id="blog-content">
+            <section>
+                <h2>Blog & Thoughts</h2>
+                <div class="blog-container">
+                    <div class="blog-intro">
+                        <p>Welcome to my digital garden where I share insights, research findings, and thoughts on AI, machine learning, health, and innovation.</p>
+                    </div>
+                    <div class="blog-posts">
+                        <div class="blog-post">
+                            <h3>Featured Articles</h3>
+                            <p>Here are some of my articles covering various topics from artificial intelligence to health and wellness:</p>
+                            <div class="article-grid">
+                                <div class="article-item" data-article-url="{% static 'blog/articles/artificial_intelligence.html' %}">
+                                    <div class="article-header">
+                                        <h4>🤖 Artificial Intelligence</h4>
+                                        <span class="article-date">April 10, 2021</span>
+                                    </div>
+                                    <p>Humanity's final invention? Exploring the future of AI and its implications.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/learning.html' %}">
+                                    <div class="article-header">
+                                        <h4>🧠 Learning</h4>
+                                        <span class="article-date">August 28, 2021</span>
+                                    </div>
+                                    <p>The right method makes all the difference in effective learning and studying.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/sleep_deprivation.html' %}">
+                                    <div class="article-header">
+                                        <h4>😴 Sleep Deprivation is Killing You!</h4>
+                                        <span class="article-date">December 13, 2020</span>
+                                    </div>
+                                    <p>A comprehensive look at the dangers of sleep deprivation and its impact on health.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/booklist.html' %}">
+                                    <div class="article-header">
+                                        <h4>📚 Book Recommendations</h4>
+                                        <span class="article-date">September 7, 2021</span>
+                                    </div>
+                                    <p>Curated list of books that have shaped my thinking and learning journey.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/pregnancy.html' %}">
+                                    <div class="article-header">
+                                        <h4>🤱 Pregnancy & Health</h4>
+                                        <span class="article-date">January 3, 2021</span>
+                                    </div>
+                                    <p>Insights into pregnancy health and maternal wellness.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/vaccines.html' %}">
+                                    <div class="article-header">
+                                        <h4>💉 Vaccines & Immunology</h4>
+                                        <span class="article-date">October 13, 2021</span>
+                                    </div>
+                                    <p>Understanding the science behind vaccines and immune system function.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/T_and_B_cell.html' %}">
+                                    <div class="article-header">
+                                        <h4>🔬 T & B Cells</h4>
+                                        <span class="article-date">October 8, 2021</span>
+                                    </div>
+                                    <p>Deep dive into the immune system's key players and their functions.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/Working_wbc.html' %}">
+                                    <div class="article-header">
+                                        <h4>🩸 How White Blood Cells Work</h4>
+                                        <span class="article-date">October 9, 2021</span>
+                                    </div>
+                                    <p>Understanding how T and B cells work together to fight diseases.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/causes_of_sleep_deprivation.html' %}">
+                                    <div class="article-header">
+                                        <h4>😴 Causes of Sleep Deprivation</h4>
+                                        <span class="article-date">December 13, 2020</span>
+                                    </div>
+                                    <p>Understanding the factors that prevent you from getting quality sleep.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/solutions_to_sleep_deprivation.html' %}">
+                                    <div class="article-header">
+                                        <h4>😴 Solutions to Sleep Deprivation</h4>
+                                        <span class="article-date">December 14, 2020</span>
+                                    </div>
+                                    <p>Practical strategies to improve your sleep quality and health.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/different_humans.html' %}">
+                                    <div class="article-header">
+                                        <h4>🧬 We Are Not That Unique</h4>
+                                        <span class="article-date">March 8, 2021</span>
+                                    </div>
+                                    <p>Discovering the other human species that once walked the Earth.</p>
+                                </div>
+                                <div class="article-item" data-article-url="{% static 'blog/articles/seatbelt.html' %}">
+                                    <div class="article-header">
+                                        <h4>🚗 Wear a Seat Belt</h4>
+                                        <span class="article-date">November 11, 2021</span>
+                                    </div>
+                                    <p>Understanding the physics behind why seat belts save lives.</p>
+                                </div>
+                            </div>
+                            <div class="blog-note">
+                                <p><strong>Note:</strong> Click any article to read the full content. Use your browser's back button to return to the portfolio.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% empty %}
-                <p>No awards to display yet.</p>
-                {% endfor %}
-            </div>
-        </section>
+            </section>
+        </div>
 
-        <section>
-            <h2>Thoughts/Blog</h2>
-            <p>Coming soon...</p>
-        </section>
+        <!-- Contact Tab Content -->
+        <div class="tab-content" id="contact-content">
+            <section>
+                <h2>Get In Touch</h2>
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <div class="contact-item" data-contact="email" data-action-url="mailto:fayol.ateufackzeudom@valpo.edu" tabindex="0" role="button" aria-label="Click to send email to Fayol">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h3>Email</h3>
+                                <p class="contact-value">fayol.ateufackzeudom@valpo.edu</p>
+                            </div>
+                            <div class="contact-actions">
+                                <a href="mailto:fayol.ateufackzeudom@valpo.edu" class="contact-link" aria-label="Send email to Fayol">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <button class="copy-btn" data-clipboard="fayol.ateufackzeudom@valpo.edu" aria-label="Copy email address">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="contact-item" data-contact="phone" data-action-url="tel:+13177207186" tabindex="0" role="button" aria-label="Click to call Fayol">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7294C21.7209 20.9846 21.5573 21.2136 21.3521 21.4019C21.1469 21.5902 20.9046 21.7335 20.6407 21.8227C20.3768 21.9119 20.0973 21.9454 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3146 6.72533 15.2661 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.09456 3.90347 2.12787 3.62476 2.21649 3.36152C2.30512 3.09828 2.44706 2.85646 2.63421 2.65149C2.82136 2.44653 3.04895 2.28271 3.30279 2.17052C3.55663 2.05833 3.83055 2.00026 4.10999 2H7.10999C7.59522 1.99522 8.06577 2.16708 8.43376 2.48353C8.80175 2.79999 9.04201 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97351 7.27675 9.89377 7.65319C9.81404 8.02963 9.62884 8.37471 9.35999 8.65L8.08999 9.92C9.51351 12.4345 11.5655 14.4865 14.08 15.91L15.35 14.64C15.6253 14.3712 15.9704 14.1859 16.3468 14.1062C16.7232 14.0265 17.1121 14.0554 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h3>Phone</h3>
+                                <p class="contact-value">(317) 720-7186</p>
+                            </div>
+                            <div class="contact-actions">
+                                <a href="tel:+13177207186" class="contact-link" aria-label="Call Fayol">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <button class="copy-btn" data-clipboard="(317) 720-7186" aria-label="Copy phone number">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="contact-item" data-contact="linkedin" data-action-url="https://linkedin.com/in/ariel-fayol" tabindex="0" role="button" aria-label="Click to visit Fayol's LinkedIn profile">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8V8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 9H2V21H6V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h3>LinkedIn</h3>
+                                <p class="contact-value">linkedin.com/in/ariel-fayol</p>
+                            </div>
+                            <div class="contact-actions">
+                                <a href="https://linkedin.com/in/ariel-fayol" target="_blank" rel="noopener noreferrer" class="contact-link" aria-label="Visit Fayol's LinkedIn profile">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <button class="copy-btn" data-clipboard="linkedin.com/in/ariel-fayol" aria-label="Copy LinkedIn URL">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="contact-item" data-contact="github" data-action-url="https://github.com/arielfayol37" tabindex="0" role="button" aria-label="Click to visit Fayol's GitHub profile">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 19C4 20.5 4 16.5 2 16M16 22V18.13C16.0375 17.6532 15.9731 17.1738 15.811 16.7238C15.6489 16.2738 15.3929 15.8634 15.06 15.52C18.2 15.17 21.5 13.98 21.5 8.52C21.4997 7.12383 21.9627 5.7812 22.796 4.612C22.608 4.13327 22.2245 3.74668 21.753 3.518C21.2815 3.28932 20.7577 3.23245 20.25 3.36C18.8 2.5 17.25 2.5 15.75 3.36C14.25 2.5 12.7 2.5 11.25 3.36C10.7423 3.23245 10.2185 3.28932 9.747 3.518C9.2755 3.74668 8.892 4.13327 8.704 4.612C9.5373 5.7812 10.0003 7.12383 10 8.52C10 13.97 13.2 15.16 16.33 15.55C16 15.89 15.746 16.293 15.579 16.738C15.412 17.183 15.345 17.657 15.38 18.13V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h3>GitHub</h3>
+                                <p class="contact-value">github.com/arielfayol37</p>
+                            </div>
+                            <div class="contact-actions">
+                                <a href="https://github.com/arielfayol37" target="_blank" rel="noopener noreferrer" class="contact-link" aria-label="Visit Fayol's GitHub profile">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <button class="copy-btn" data-clipboard="github.com/arielfayol37" aria-label="Copy GitHub URL">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-message">
+                        <p>I'm always interested in new opportunities, collaborations, and interesting conversations about AI and technology. Feel free to reach out for hard core projects or just to chat!</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Resume Tab Content -->
+        <div class="tab-content" id="resume-content">
+            <section>
+                <h2>Resume & CV</h2>
+                <div class="resume-container">
+                    <div class="resume-download">
+                        <h3>Download My Resume</h3>
+                        <p>Get a comprehensive overview of my experience, skills, and achievements.</p>
+                        <a href="{% url 'download_fayol_resume' %}" class="resume-btn">
+                            <span class="btn-icon">📥</span>
+                            <span class="btn-text">Download PDF</span>
+                            <div class="btn-glow"></div>
+                        </a>
+                    </div>
+                    <div class="resume-preview">
+                        <h3>Quick Overview</h3>
+                        <div class="resume-highlights">
+                            <div class="highlight-item">
+                                <span class="highlight-icon">🎓</span>
+                                <div class="highlight-content">
+                                    <h4>Education</h4>
+                                    <p>Computer Engineering & Physics Double Major at Valparaiso University (GPA: 3.6/4.0)</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item">
+                                <span class="highlight-icon">💼</span>
+                                <div class="highlight-content">
+                                    <h4>Experience</h4>
+                                    <p>AI/ML & SWE Internships at BlackRock, Micron Technology, and ComEd</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item">
+                                <span class="highlight-icon">🏆</span>
+                                <div class="highlight-content">
+                                    <h4>Achievements</h4>
+                                    <p>BlackRock Founder's Scholarship, Generation Google Scholarship, ComEd Future of Energy Scholarship</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item">
+                                <span class="highlight-icon">📚</span>
+                                <div class="highlight-content">
+                                    <h4>Certifications</h4>
+                                    <p>Harvard AI with Python, Harvard Web Programming, Dale Carnegie Professional Development</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item">
+                                <span class="highlight-icon">🔬</span>
+                                <div class="highlight-content">
+                                    <h4>Research</h4>
+                                    <p>Published IEEE papers on traffic analysis, lattice path optimization, and parking utilization</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item">
+                                <span class="highlight-icon">👥</span>
+                                <div class="highlight-content">
+                                    <h4>Leadership</h4>
+                                    <p>President of NSBE, managing $20k budget and driving 70% internship placement rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <footer>

@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# CSRF_TRUSTED_ORIGINS = ["http://*"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -124,13 +123,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = BASE_DIR/'static'
+# Directory where collectstatic will put files for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Directories to search for static files during development
 STATICFILES_DIRS = [
-    BASE_DIR / "DeathNote" / "portfolio" / "static",
+    BASE_DIR / "static",
+    BASE_DIR / "portfolio" / "static",
 ]
 
-
+# Media files (user uploads)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

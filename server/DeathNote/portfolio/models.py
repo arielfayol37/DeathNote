@@ -15,6 +15,7 @@ class Project(models.Model):
     link = models.URLField(blank=True)
     image = models.ImageField(upload_to='projects/', blank=False)
     skills = models.ManyToManyField(Skill, blank=False)
+    priority = models.IntegerField(default=0, help_text="Higher numbers = cooler projects (displayed first)")
 
     def __str__(self):
         return self.title
@@ -41,12 +42,22 @@ class ContactMessage(models.Model):
     def __str__(self):
         return f"Message from {self.name}"
 
-class Award(models.Model):
+class Achievement(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     date = models.DateField()
     link = models.URLField(blank=True)
-    image = models.ImageField(upload_to='awards/', blank=True)
-
+    image = models.ImageField(upload_to='achievements/', blank=True)
+    
+    class Meta:
+        abstract = True
+    
     def __str__(self):
         return self.title
+
+class Award(Achievement):
+    pass
+
+class Certificate(Achievement):
+    issuer = models.CharField(max_length=100)
+
