@@ -10,12 +10,19 @@ class Skill(models.Model):
         return self.name
 
 class Project(models.Model):
+    PROJECT_TYPE_CHOICES = [
+        ('SWE', 'Software Engineering'),
+        ('RESEARCH', 'Research'),
+        ('OTHER', 'Other'),
+    ]
+    
     title = models.CharField(max_length=100)
     description = models.TextField()
     link = models.URLField(blank=True)
     image = models.ImageField(upload_to='projects/', blank=False)
     skills = models.ManyToManyField(Skill, blank=False)
     priority = models.IntegerField(default=0, help_text="Higher numbers = cooler projects (displayed first)")
+    type = models.CharField(max_length=10, choices=PROJECT_TYPE_CHOICES, default='SWE')
 
     def __str__(self):
         return self.title

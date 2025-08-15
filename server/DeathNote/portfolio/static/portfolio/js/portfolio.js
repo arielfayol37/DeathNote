@@ -51,6 +51,12 @@ function initTabNavigation() {
             targetButton.classList.add('active');
             targetContent.classList.add('active');
             
+            // Reset scroll position to top when switching tabs
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            
             // Add entrance animation
             targetContent.style.opacity = '0';
             targetContent.style.transform = 'translateY(20px)';
@@ -704,7 +710,13 @@ function initBlogArticleInteractions() {
     const articleItems = document.querySelectorAll('.article-item');
     
     articleItems.forEach(item => {
-        item.addEventListener('click', () => {
+        // Handle clicks on the article item (for enhanced UX)
+        item.addEventListener('click', (e) => {
+            // Don't trigger if clicking on the link directly
+            if (e.target.closest('.article-link')) {
+                return;
+            }
+            
             const articleUrl = item.getAttribute('data-article-url');
             if (articleUrl) {
                 // Add click effect
@@ -718,6 +730,19 @@ function initBlogArticleInteractions() {
                 }, 150);
             }
         });
+        
+        // Handle direct link clicks (for LLMs and accessibility)
+        const articleLink = item.querySelector('.article-link');
+        if (articleLink) {
+            articleLink.addEventListener('click', (e) => {
+                // Add click effect to the link
+                e.target.style.transform = 'scale(0.98)';
+                
+                setTimeout(() => {
+                    e.target.style.transform = '';
+                }, 150);
+            });
+        }
         
         // Keyboard navigation
         item.addEventListener('keydown', (e) => {
