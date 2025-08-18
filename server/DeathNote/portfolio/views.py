@@ -8,7 +8,7 @@ from django.http import FileResponse
 
 def home(request):
     about_me = (
-        "Engineer + researcher passionate about technology, "
+        "AI Engineer + researcher passionate about technology, "
         "problem-solving, and ultimately inventing solutions to real-world problems. Hit me up at fayol.ateufackzeudom@valpo.edu"
     )
     projects = Project.objects.all().order_by('-priority')

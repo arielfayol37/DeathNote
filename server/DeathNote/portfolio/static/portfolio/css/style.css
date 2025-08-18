@@ -470,18 +470,30 @@ footer::before {
     50% { opacity: 0.7; }
 }
 
-/* Tab Content Styles */
+/* Tab Content Styles - Progressive Enhancement */
 .tab-content {
-    display: none;
-    opacity: 0;
-    transform: translateY(20px);
+    display: block; /* Show all content by default for LLMs */
+    opacity: 1;
+    transform: translateY(0);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+/* Hide non-active tabs visually but keep them accessible */
+.tab-content:not(.active) {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
 }
 
 .tab-content.active {
-    display: block;
+    position: relative;
+    left: auto;
     opacity: 1;
-    transform: translateY(0);
+    pointer-events: auto;
+    z-index: 1;
 }
 
 /* About Tab Styles */
@@ -1720,5 +1732,40 @@ footer::before {
     .footer-bottom {
         padding-left: 1rem;
         padding-right: 1rem;
+    }
+}
+
+/* LLM Navigation - Invisible to visual users but accessible to LLMs */
+.llm-navigation {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.llm-only {
+    /* These elements are only visible to LLMs and screen readers */
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Ensure LLM navigation is accessible to screen readers */
+@media screen and (max-width: 0px) {
+    .llm-navigation,
+    .llm-only {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        opacity: 1;
+        pointer-events: auto;
     }
 }

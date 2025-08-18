@@ -121,64 +121,27 @@
         </div>
     </nav>
 
-    <main role="main">
-        <!-- Invisible Navigation for LLMs and Screen Readers -->
-        <nav class="sr-only" aria-label="Main navigation">
-            <h2>Site Navigation</h2>
-            <ul>
-                <li><a href="#portfolio-content">Portfolio</a></li>
-                <li><a href="#about-content">About Me</a></li>
-                <li><a href="#blog-content">Blog</a></li>
-                <li><a href="#contact-content">Contact</a></li>
-                <li><a href="#resume-content">Resume</a></li>
-            </ul>
-            <h3>Portfolio Sections</h3>
-            <ul>
-                <li><a href="#research-projects">Research Projects</a></li>
-                <li><a href="#work-experience">Work Experience</a></li>
-                <li><a href="#awards-scholarships">Awards & Scholarships</a></li>
-            </ul>
-            <h3>Content Index</h3>
-            <ul>
-                <li><a href="#portfolio-content">View All Portfolio Content</a></li>
-                <li><a href="#about-content">View All About Me Content</a></li>
-                <li><a href="#blog-content">View All Blog Articles</a></li>
-                <li><a href="#contact-content">View All Contact Information</a></li>
-                <li><a href="#resume-content">View All Resume Information</a></li>
-            </ul>
-            <h3>Blog Articles</h3>
-            <ul>
-                <li><a href="{% static 'blog/articles/artificial_intelligence.html' %}">Artificial Intelligence</a></li>
-                <li><a href="{% static 'blog/articles/learning.html' %}">Learning</a></li>
-                <li><a href="{% static 'blog/articles/sleep_deprivation.html' %}">Sleep Deprivation is Killing You!</a></li>
-                <li><a href="{% static 'blog/articles/booklist.html' %}">Book Recommendations</a></li>
-                <li><a href="{% static 'blog/articles/pregnancy.html' %}">Pregnancy & Health</a></li>
-                <li><a href="{% static 'blog/articles/vaccines.html' %}">Vaccines & Immunology</a></li>
-                <li><a href="{% static 'blog/articles/T_and_B_cell.html' %}">T & B Cells</a></li>
-                <li><a href="{% static 'blog/articles/Working_wbc.html' %}">How White Blood Cells Work</a></li>
-                <li><a href="{% static 'blog/articles/causes_of_sleep_deprivation.html' %}">Causes of Sleep Deprivation</a></li>
-                <li><a href="{% static 'blog/articles/solutions_to_sleep_deprivation.html' %}">Solutions to Sleep Deprivation</a></li>
-                <li><a href="{% static 'blog/articles/different_humans.html' %}">We Are Not That Unique</a></li>
-                <li><a href="{% static 'blog/articles/seatbelt.html' %}">Wear a Seat Belt</a></li>
-            </ul>
-            <h3>Quick Access</h3>
-            <ul>
-                <li><a href="mailto:fayol.ateufackzeudom@valpo.edu">Send Email</a></li>
-                <li><a href="tel:+13177207186">Call Phone</a></li>
-                <li><a href="https://linkedin.com/in/ariel-fayol">Visit LinkedIn</a></li>
-                <li><a href="https://github.com/arielfayol37">Visit GitHub</a></li>
-                <li><a href="{% url 'download_fayol_resume' %}">Download Resume</a></li>
-            </ul>
-        </nav>
+    <!-- LLM Navigation - Invisible to visual users but accessible to LLMs -->
+    <nav class="llm-navigation" aria-label="LLM and screen reader navigation">
+        <h2 class="llm-only">Site Navigation</h2>
+        <ul class="llm-only">
+            <li><a href="#portfolio">Portfolio Section</a></li>
+            <li><a href="#about">About Me Section</a></li>
+            <li><a href="#blog">Blog Section</a></li>
+            <li><a href="#contact">Contact Section</a></li>
+            <li><a href="#resume">Resume Section</a></li>
+        </ul>
+        <h3 class="llm-only">Content Overview</h3>
+        <ul class="llm-only">
+            <li><a href="#research-projects">View Research Projects</a></li>
+            <li><a href="#work-experience">View Work Experience</a></li>
+            <li><a href="#awards-scholarships">View Awards & Scholarships</a></li>
+        </ul>
+    </nav>
 
+    <main role="main">
         <!-- Portfolio Tab Content -->
         <div class="tab-content active" id="portfolio-content">
-            <!-- Invisible content structure for LLMs -->
-            <div class="sr-only">
-                <h2>Portfolio Overview</h2>
-                <p>This portfolio contains research projects, work experience, and awards. Each section provides detailed information about Fayol's professional background and achievements.</p>
-            </div>
-            
             <section id="research-projects">
                 <h2>Projects</h2>
                 <div class="card-container">
@@ -269,12 +232,6 @@
 
         <!-- About Me Tab Content -->
         <div class="tab-content" id="about-content">
-            <!-- Invisible content structure for LLMs -->
-            <div class="sr-only">
-                <h2>About Fayol Ateufack</h2>
-                <p>Fayol is a Computer Engineering and Physics student at Valparaiso University with expertise in AI, machine learning, and software engineering. He has strong skills in Python, JavaScript, C/C++, Java, and various frameworks including PyTorch, TensorFlow, Django, and React.</p>
-            </div>
-            
             <section>
                 <h2>About Me</h2>
                 <div class="about-container">
@@ -335,17 +292,11 @@
 
         <!-- Blog Tab Content -->
         <div class="tab-content" id="blog-content">
-            <!-- Invisible content structure for LLMs -->
-            <div class="sr-only">
-                <h2>Blog Content Overview</h2>
-                <p>This blog contains articles on artificial intelligence, learning, health, sleep science, immunology, and various scientific topics. Each article provides in-depth analysis and insights.</p>
-            </div>
-            
             <section>
                 <h2>Blog & Thoughts</h2>
                 <div class="blog-container">
                     <div class="blog-intro">
-                        <p>Welcome to my digital garden where I share insights, research findings, and thoughts on AI, machine learning, health, and innovation.</p>
+                        <p>Welcome to my digital garden where I share my thoughts and learnings.</p>
                     </div>
                     <div class="blog-posts">
                         <div class="blog-post">
@@ -444,12 +395,6 @@
 
         <!-- Contact Tab Content -->
         <div class="tab-content" id="contact-content">
-            <!-- Invisible content structure for LLMs -->
-            <div class="sr-only">
-                <h2>Contact Information Overview</h2>
-                <p>Contact Fayol Ateufack via email, phone, LinkedIn, or GitHub. All contact methods are provided with direct links for easy access.</p>
-            </div>
-            
             <section>
                 <h2>Get In Touch</h2>
                 <div class="contact-container">
@@ -564,12 +509,6 @@
 
         <!-- Resume Tab Content -->
         <div class="tab-content" id="resume-content">
-            <!-- Invisible content structure for LLMs -->
-            <div class="sr-only">
-                <h2>Resume Overview</h2>
-                <p>Fayol's resume includes education at Valparaiso University, work experience at major companies, awards and scholarships, certifications, research publications, and leadership experience.</p>
-            </div>
-            
             <section>
                 <h2>Resume & CV</h2>
                 <div class="resume-container">

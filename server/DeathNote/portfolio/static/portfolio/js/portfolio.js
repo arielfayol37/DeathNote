@@ -40,6 +40,23 @@ function initTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
+    // Function to handle hash changes
+    function handleHashChange() {
+        const hash = window.location.hash.slice(1); // Remove the # symbol
+        
+        // Only handle tab-related hashes, leave other anchor links alone
+        if (hash && ['portfolio', 'about', 'blog', 'contact', 'resume'].includes(hash)) {
+            switchToTab(hash);
+        } else if (hash) {
+            // For non-tab hashes (like anchor links), let the browser handle it naturally
+            // Don't switch tabs, don't scroll to top - let the anchor link work
+            return;
+        } else {
+            // Default to portfolio if no valid hash
+            switchToTab('portfolio');
+        }
+    }
+
     // Function to switch to a specific tab
     function switchToTab(tabName) {
         // Remove active class from all buttons and contents
@@ -54,13 +71,15 @@ function initTabNavigation() {
             targetButton.classList.add('active');
             targetContent.classList.add('active');
             
-            // Reset scroll position to top when switching tabs
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            // Only reset scroll position for tab switches, not for anchor links
+            if (['portfolio', 'about', 'blog', 'contact', 'resume'].includes(tabName)) {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
             
-            // Add entrance animation
+            // Add entrance animation for the new active tab
             targetContent.style.opacity = '0';
             targetContent.style.transform = 'translateY(20px)';
             
@@ -77,18 +96,6 @@ function initTabNavigation() {
             }
         }
     }
-    
-    // Function to handle hash changes
-    function handleHashChange() {
-        const hash = window.location.hash.slice(1); // Remove the # symbol
-        if (hash && ['portfolio', 'about', 'blog', 'contact', 'resume'].includes(hash)) {
-            switchToTab(hash);
-        } else {
-            // Default to portfolio if no valid hash
-            switchToTab('portfolio');
-        }
-    }
-    
     // Handle initial page load
     handleHashChange();
     
