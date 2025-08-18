@@ -10,8 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Smooth Scroll Animation
     initSmoothScroll();
     
-    // Card Interaction Effects
+    // Enhanced Card Effects
     initCardEffects();
+    
+    // Project Modal System
+    initProjectModal();
     
     // Typing Animation for Header
     initTypingEffect();
@@ -299,17 +302,26 @@ function initCardEffects() {
             card.style.transform = 'translateY(0) scale(1) rotateX(0deg) rotateY(0deg)';
         });
         
-        // Click effect and navigation
+        // Click effect and modal opening
         card.addEventListener('click', () => {
             // Visual feedback
             card.style.transform = 'scale(0.98)';
             
-            // Check if card has a link and navigate
-            const link = card.getAttribute('data-link');
-            if (link) {
-                setTimeout(() => {
+            // Check if this is a project card (has project-specific attributes)
+            const isProjectCard = card.hasAttribute('data-title') || 
+                                 card.hasAttribute('data-type') || 
+                                 card.hasAttribute('data-demo-url');
+            
+            if (isProjectCard) {
+                // Open project modal for project cards
+                openProjectModal(card);
+            } else {
+                // For award/experience cards, navigate directly to the link
+                const link = card.getAttribute('data-link');
+                if (link) {
+                    // Navigate to the link
                     window.open(link, '_blank');
-                }, 150);
+                }
             }
             
             // Reset transform
@@ -330,14 +342,211 @@ function initCardEffects() {
             }
         });
         
-        // Add accessibility features for cards with links
-        if (card.hasAttribute('data-link')) {
-            card.setAttribute('tabindex', '0');
-            card.setAttribute('role', 'button');
+        // Add accessibility features for cards
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        
+        // Check if this is a project card or link card
+        const isProjectCard = card.hasAttribute('data-title') || 
+                             card.hasAttribute('data-type') || 
+                             card.hasAttribute('data-demo-url');
+        const hasLink = card.hasAttribute('data-link');
+        
+        let ariaLabel;
+        if (isProjectCard) {
+            const title = card.querySelector('h3')?.textContent || 'project';
+            ariaLabel = `Click to view ${title} details`;
+        } else if (hasLink) {
             const title = card.querySelector('h3')?.textContent || 'item';
-            card.setAttribute('aria-label', `Click to view ${title}`);
+            ariaLabel = `Click to visit ${title} link`;
+        } else {
+            const title = card.querySelector('h3')?.textContent || 'item';
+            ariaLabel = `Click to view ${title}`;
+        }
+        
+        card.setAttribute('aria-label', ariaLabel);
+    });
+}
+
+// Project Modal System
+function initProjectModal() {
+    const modal = document.getElementById('project-modal');
+    const closeBtn = modal.querySelector('.modal-close');
+    const overlay = modal.querySelector('.modal-overlay');
+    
+    // Close modal on close button click
+    closeBtn.addEventListener('click', closeProjectModal);
+    
+    // Close modal on overlay click
+    overlay.addEventListener('click', closeProjectModal);
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeProjectModal();
         }
     });
+    
+    // Prevent modal close when clicking modal content
+    modal.querySelector('.modal-content').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+}
+
+function openProjectModal(card) {
+    const modal = document.getElementById('project-modal');
+    
+    // Get project data from card attributes
+    const title = card.getAttribute('data-title');
+    const description = card.getAttribute('data-description');
+    const type = card.getAttribute('data-type');
+    const demoUrl = card.getAttribute('data-demo-url');
+    const demoType = card.getAttribute('data-demo-type');
+    const link = card.getAttribute('data-link');
+    const paperUrl = card.getAttribute('data-paper-url');
+    const skills = card.getAttribute('data-skills').split(',').filter(skill => skill.trim());
+    
+    // Populate modal content
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-type-badge').textContent = getProjectTypeDisplay(type);
+    document.getElementById('modal-description').textContent = description;
+    
+    // Populate skills
+    const skillsContainer = document.getElementById('modal-skills');
+    skillsContainer.innerHTML = '';
+    skills.forEach(skill => {
+        if (skill.trim()) {
+            const skillSpan = document.createElement('span');
+            skillSpan.className = 'skill';
+            skillSpan.textContent = skill.trim();
+            skillsContainer.appendChild(skillSpan);
+        }
+    });
+    
+    // Populate demo section
+    const demoContainer = document.getElementById('modal-demo');
+    if (demoType !== 'NONE' && demoUrl) {
+        if (demoType === 'VIDEO') {
+            // Handle YouTube URLs
+            const videoId = extractYouTubeId(demoUrl);
+            if (videoId) {
+                demoContainer.innerHTML = `
+                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                demoContainer.innerHTML = `
+                    <div class="no-demo">
+                        <p>Demo video not available</p>
+                    </div>
+                `;
+            }
+        } else if (demoType === 'IFRAME') {
+            // Handle Google Drive or other iframe URLs
+            demoContainer.innerHTML = `
+                <iframe src="${demoUrl}" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            `;
+        }
+    } else {
+        demoContainer.innerHTML = `
+            <div class="no-demo">
+                <p>No demo available for this project</p>
+            </div>
+        `;
+    }
+    
+    // Populate links section
+    const linksContainer = document.getElementById('modal-links');
+    linksContainer.innerHTML = '';
+    
+    // Add View Project button if project link exists
+    if (link) {
+        const linkElement = document.createElement('a');
+        linkElement.href = link;
+        linkElement.target = '_blank';
+        linkElement.rel = 'noopener noreferrer';
+        linkElement.className = 'modal-link';
+        linkElement.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            View Project
+        `;
+        linksContainer.appendChild(linkElement);
+    }
+    
+    // Add View Paper button if paper URL exists
+    if (paperUrl) {
+        const paperElement = document.createElement('a');
+        paperElement.href = paperUrl;
+        paperElement.target = '_blank';
+        paperElement.rel = 'noopener noreferrer';
+        paperElement.className = 'modal-link';
+        paperElement.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            View Paper
+        `;
+        linksContainer.appendChild(paperElement);
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus management
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) {
+        closeBtn.focus();
+    }
+}
+
+function closeProjectModal() {
+    const modal = document.getElementById('project-modal');
+    const demoContainer = document.getElementById('modal-demo');
+    
+    // Stop any playing videos/iframes
+    const iframe = demoContainer.querySelector('iframe');
+    if (iframe) {
+        iframe.src = iframe.src;
+    }
+    
+    // Hide modal
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Clear modal content
+    setTimeout(() => {
+        document.getElementById('modal-title').textContent = '';
+        document.getElementById('modal-description').textContent = '';
+        document.getElementById('modal-skills').innerHTML = '';
+        document.getElementById('modal-demo').innerHTML = '';
+        document.getElementById('modal-links').innerHTML = '';
+    }, 300);
+}
+
+function getProjectTypeDisplay(type) {
+    const typeMap = {
+        'SWE': 'Software Engineering',
+        'RESEARCH': 'Research',
+        'OTHER': 'Other'
+    };
+    return typeMap[type] || type;
+}
+
+function extractYouTubeId(url) {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
 }
 
 // Typing Animation for Header

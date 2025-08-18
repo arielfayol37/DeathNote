@@ -5,19 +5,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fayol Ateufack</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Fayol Ateufack - AI Engineer & Computer Engineering & Physics Student | Portfolio</title>
+    <meta name="title" content="Fayol Ateufack - AI Engineer & Computer Engineering & Physics Student | Portfolio">
+    <meta name="description" content="AI Engineer and Computer Engineering & Physics student at Valparaiso University. Expert in machine learning, software engineering, physics research, and innovation. View projects, blog articles, and professional experience.">
+    <meta name="keywords" content="AI Engineer, Machine Learning, Computer Engineering, Physics, Software Engineer, Python, PyTorch, TensorFlow, Django, React, Research, Valparaiso University, Quantum Physics, Applied Physics">
+    <meta name="author" content="Fayol Ateufack">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arielfayol.com">
+    <meta property="og:title" content="Fayol Ateufack - AI Engineer & Computer Engineering & Physics Student">
+    <meta property="og:description" content="AI Engineer and Computer Engineering & Physics student at Valparaiso University. Expert in machine learning, software engineering, physics research, and innovation.">
+    <meta property="og:image" content="{% static 'portfolio/images/mars.ico' %}">
+    <meta property="og:site_name" content="Fayol Ateufack Portfolio">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://arielfayol.com">
+    <meta property="twitter:title" content="Fayol Ateufack - AI Engineer & Computer Engineering & Physics Student">
+    <meta property="twitter:description" content="AI Engineer and Computer Engineering & Physics student at Valparaiso University. Expert in machine learning, software engineering, physics research, and innovation.">
+    <meta property="twitter:image" content="{% static 'portfolio/images/mars.ico' %}">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://arielfayol.com">
+    
+    <!-- Favicon and Icons -->
     <link rel="icon" type="image/x-icon" href="{% static 'portfolio/images/mars.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'portfolio/images/mars.ico' %}">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Structured Data for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Fayol Ateufack",
+        "jobTitle": "AI Engineer & Computer Engineering & Physics Student",
+        "alumniOf": {
+            "@type": "CollegeOrUniversity",
+            "name": "Valparaiso University"
+        },
+        "description": "AI Engineer and Computer Engineering & Physics student with expertise in machine learning, software engineering, physics research, and innovation",
+        "url": "https://arielfayol.com",
+        "sameAs": [
+            "https://linkedin.com/in/ariel-fayol",
+            "https://github.com/arielfayol37"
+        ],
+        "knowsAbout": [
+            "Artificial Intelligence",
+            "Machine Learning",
+            "Computer Engineering",
+            "Physics",
+            "Software Engineering",
+            "Python Programming",
+            "PyTorch",
+            "TensorFlow",
+            "Django",
+            "React",
+            "Quantum Physics",
+            "Applied Physics"
+        ]
+    }
+    </script>
 </head>
 <body>
-    <header>
+    <header role="banner">
         <h1>Fayol Ateufack</h1>
         <p>{{ about_me }}</p>
     </header>
 
     <!-- Futuristic Tab Navigation -->
-    <nav class="tab-navigation">
+    <nav class="tab-navigation" role="navigation" aria-label="Main navigation">
         <div class="tab-container">
             <button class="tab-btn active" data-tab="portfolio">
                 <span class="tab-icon">🚀</span>
@@ -47,7 +121,7 @@
         </div>
     </nav>
 
-    <main>
+    <main role="main">
         <!-- Invisible Navigation for LLMs and Screen Readers -->
         <nav class="sr-only" aria-label="Main navigation">
             <h2>Site Navigation</h2>
@@ -106,15 +180,33 @@
             </div>
             
             <section id="research-projects">
-                <h2>Research Projects</h2>
+                <h2>Projects</h2>
                 <div class="card-container">
                     {% for project in projects %}
-                    <div class="card" {% if project.link %}data-link="{{ project.link }}"{% endif %}>
+                    <div class="card" 
+                         data-project-id="{{ project.id }}"
+                         data-title="{{ project.title }}"
+                         data-description="{{ project.description }}"
+                         data-type="{{ project.type }}"
+                         data-demo-url="{{ project.demo_url|default:'' }}"
+                         data-demo-type="{{ project.demo_type|default:'NONE' }}"
+                         data-link="{{ project.link|default:'' }}"
+                         data-paper-url="{{ project.paper_url|default:'' }}"
+                         data-skills="{% for skill in project.skills.all %}{{ skill.name }}{% if not forloop.last %},{% endif %}{% endfor %}">
                             <div class="card-img-container">
-                                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="card-img">
+                                {% if project.demo_type != 'NONE' and project.demo_url %}
+                                    <div class="demo-overlay">
+                                        <div class="play-button">▶</div>
+                                        <span class="demo-label">Demo</span>
+                                    </div>
+                                {% endif %}
+                                <img src="{{ project.image.url }}" alt="{{ project.title }} - {{ project.get_type_display }} project" class="card-img" loading="lazy">
                             </div>
                             <div class="card-content">
-                                <h3>{{ project.title }}</h3>
+                                <div class="card-header">
+                                    <h3>{{ project.title }}</h3>
+                                    <div class="project-type-badge">{{ project.get_type_display }}</div>
+                                </div>
                                 <p>{{ project.description }}</p>
                                 <div class="skills">
                                     {% for skill in project.skills.all %}
@@ -136,7 +228,7 @@
                     <div class="card" {% if exp.link %}data-link="{{ exp.link }}"{% endif %}>
                         <div class="card-img-container {% if not exp.image %}placeholder{% endif %}">
                             {% if exp.image %}
-                                <img src="{{ exp.image.url }}" alt="{{ exp.title }} at {{ exp.company }}" class="card-img">
+                                <img src="{{ exp.image.url }}" alt="{{ exp.title }} at {{ exp.company }}" class="card-img" loading="lazy">
                             {% endif %}
                         </div>
                         <div class="card-content">
@@ -159,7 +251,7 @@
                     <div class="card" {% if award.link %}data-link="{{ award.link }}"{% endif %}>
                         <div class="card-img-container {% if not award.image %}placeholder{% endif %}">
                             {% if award.image %}
-                                <img src="{{ award.image.url }}" alt="{{ award.title }}" class="card-img">
+                                <img src="{{ award.image.url }}" alt="{{ award.title }} award" class="card-img" loading="lazy">
                             {% endif %}
                         </div>
                         <div class="card-content">
@@ -188,7 +280,7 @@
                 <div class="about-container">
                     <div class="about-text">
                         <p>Hi, I am Fayol. They call me AI guy. </p>
-                        <p>My #1 skill is that I learn really fast. Right now I am studying Computer Engineering and Physics as a side quest at Valparaiso University.</p>
+                        <p>My #1 skill is that I learn really fast. Right now I am studying Computer Engineering and Physics at Valparaiso University.</p>
                         <p>Oh boy, I have lots of interests. I am lifelong learner. Space exploration, biotechnology, physics, software engineering, really anything techy/sciency/mathy. So my #2 is skill is that I usually have creative ideas and unconventional solutions.</p>
                         <p>I enjoy working on extremely challenging problems with fast-moving cracked teams.</p>
                         <p>Looking forward to inventing the future.</p>
@@ -258,7 +350,6 @@
                     <div class="blog-posts">
                         <div class="blog-post">
                             <h3>Featured Articles</h3>
-                            <p>Here are some of my articles covering various topics from artificial intelligence to health and wellness:</p>
                             <div class="article-grid">
                                 <div class="article-item" data-article-url="{% static 'blog/articles/artificial_intelligence.html' %}">
                                     <div class="article-header">
@@ -344,9 +435,6 @@
                                     </div>
                                     <p>Understanding the physics behind why seat belts save lives.</p>
                                 </div>
-                            </div>
-                            <div class="blog-note">
-                                <p><strong>Note:</strong> Click any article to read the full content. Use your browser's back button to return to the portfolio.</p>
                             </div>
                         </div>
                     </div>
@@ -546,8 +634,32 @@
         </div>
     </main>
 
+    <!-- Project Modal -->
+    <div id="project-modal" class="project-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <div class="modal-type-badge" id="modal-type-badge"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-demo" id="modal-demo"></div>
+                <div class="modal-description">
+                    <p id="modal-description"></p>
+                    <div class="modal-skills" id="modal-skills"></div>
+                </div>
+                <div class="modal-links" id="modal-links"></div>
+            </div>
+        </div>
+    </div>
+
     <footer>
-        <p>&copy; {{ now|date:"Y" }} Fayol Ateufack</p>
+        <p>&copy; {{ now|date:"Y" }} Fayol Ateufack. All rights reserved.</p>
     </footer>
     
     <script src="{% static 'portfolio/js/portfolio.js' %}"></script>

@@ -29,9 +29,9 @@ def home(request):
 def download_pdf(request, paper_title):
     """Download a PDF file"""
     pdf_path = os.path.join('static', 'pdfs', paper_title + ".pdf")
-    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, content_type='application/pdf')
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=False, content_type='application/pdf')
 
 def download_resume(request):
     """Download a PDF file"""
     pdf_path = os.path.join('static', 'pdfs', "fayol_resume.pdf")
-    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, content_type='application/pdf')
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=False, content_type='application/pdf')

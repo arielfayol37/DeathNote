@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://arielfayol.com/sitemap.xml
+
+# Allow crawling of all content
+Allow: /static/
+Allow: /media/
+Allow: /blog/
+Allow: /portfolio/
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /staticfiles/admin/
+
+# Crawl delay (optional)
+Crawl-delay: 1
