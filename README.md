@@ -51,8 +51,6 @@ The backend is built with **Django** and **Django REST Framework**. It powers al
   Receives notes (text, images, audio) via API, processes media (transcribes audio, describes images), and stores them.
 - **AI Summarization:**  
   Uses a multimodal LLM (via OpenAI or Ollama) to generate summaries and witty commentary in the style of Ryük, referencing previous entries for context. See [`utils.py`](server/DeathNote/notes/utils.py) for prompt engineering and LLM calls.
-- **Semantic Search:**  
-  Embeds notes using AI models and allows users to search by meaning, not just keywords. See [`views.py`](server/DeathNote/notes/views.py).
 - **Chat with Shinigami:**  
   Provides a conversational endpoint where the AI responds as Ryük, drawing from past summaries and user settings.
 - **User Settings:**  
@@ -74,7 +72,6 @@ The backend is built with **Django** and **Django REST Framework**. It powers al
 ### API Endpoints
 
 - `POST /api/notes/summarize/` — Upload a note and receive a summary.
-- `GET /api/notes/search/` — Semantic search for notes.
 - `POST /api/chat/` — Chat with your Shinigami.
 
 #### Summarization Flow
@@ -88,13 +85,6 @@ The backend is built with **Django** and **Django REST Framework**. It powers al
 
 1. The frontend sends chat messages, working memory (recent summaries), and user settings.
 2. The backend uses a specialized prompt to generate Ryük-style responses, referencing past entries and maintaining persona.
-
-#### Semantic Search
-
-- Notes are embedded using AI models.
-- Search queries are embedded and compared for similarity.
-- Results are ranked and returned to the frontend.
-
 ---
 
 ## Getting Started
@@ -105,6 +95,7 @@ The backend is built with **Django** and **Django REST Framework**. It powers al
 - Expo CLI
 - Python 3 (for backend)
 - Django & Django REST Framework
+- LM Studio and/or Ollama to download and run the models.
 
 ### Setup
 
@@ -150,15 +141,3 @@ server/
       utils.py
       urls.py
 ```
-
----
-
-## Backend Endpoints
-
-- `/api/notes/summarize/` — Summarize notes
-- `/api/notes/search/` — Semantic search
-- `/api/chat` — Chat with Shinigami
-
----
-
-*Contributions and feedback
