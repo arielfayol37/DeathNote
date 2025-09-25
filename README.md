@@ -2,8 +2,7 @@
 
 DeathNote is a multimodal LLM-powered React Native mobile app for taking notes using text, images, and audio. The app summarizes your entries with witty commentary from your chosen Shinigami, and supports searching, organizing, and reviewing your notes.
 
-[Demo](https://drive.google.com/file/d/1N_HrYX3pxeYuiMkKvLW6h9QdQHn6FOQr/view)
----
+[Watch Demo](https://drive.google.com/file/d/1N_HrYX3pxeYuiMkKvLW6h9QdQHn6FOQr/view)
 
 ## Features
 
